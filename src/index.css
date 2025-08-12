@@ -1,0 +1,12 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Nunito+Sans:wght@400;600;700&family=Poppins:wght@400;500;600;700&display=swap');
+@import "tailwindcss";
+/* src/index.css */
+h1, h2, h3, h4, h5, h6 {
+  font-family: 'Poppins', sans-serif;
+}
+p{
+    font-family: 'Inter';
+}
+button{
+    font-family: 'Nunito sans';
+}

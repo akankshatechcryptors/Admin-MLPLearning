@@ -1,0 +1,293 @@
+[
+  {
+    "groupName": "Cardiology",
+    "users": [
+      {
+        "name": "Mitansh Pandya",
+        "email": "mitansh.pandya@gmail.com",
+        "contact": "8879463734",
+        "type": "doctor",
+        "dob": "2007-08-07"
+      },
+      {
+        "name": "Karan Joshi",
+        "email": "karan.joshi@gmail.com",
+        "contact": "8879463744",
+        "type": "doctor",
+        "dob": "1984-01-14"
+      },
+      {
+        "name": "Ajay Singh",
+        "email": "ajay.singh@gmail.com",
+        "contact": "8879463754",
+        "type": "physician",
+        "dob": "1987-03-14"
+      },
+      {
+        "name": "Vijay Malik",
+        "email": "vijay.malik@gmail.com",
+        "contact": "8879463764",
+        "type": "physician",
+        "dob": "1988-02-14"
+      },
+      {
+        "name": "Amitabh Bachchan",
+        "email": "amitabh.bachchan@gmail.com",
+        "contact": "8879463774",
+        "type": "physician",
+        "dob": "1989-01-14"
+      },
+      {
+        "name": "Dr. Nisha Bhatia",
+        "email": "nisha.bhatia@gmail.com",
+        "contact": "8879463790",
+        "type": "physician",
+        "dob": "1985-06-19"
+      },
+      {
+        "name": "Dr. Rajat Kapoor",
+        "email": "rajat.kapoor@gmail.com",
+        "contact": "8879463791",
+        "type": "doctor",
+        "dob": "1991-09-04"
+      }
+    ]
+  },
+  {
+    "groupName": "Neurology",
+    "users": [
+      {
+        "name": "Sydd",
+        "email": "sydd@gmail.com",
+        "contact": "8879463735",
+        "type": "maketeer",
+        "dob": "2007-10-05"
+      },
+      {
+        "name": "Deepika Nair",
+        "email": "deepika.nair@gmail.com",
+        "contact": "8879463745",
+        "type": "maketeer",
+        "dob": "1991-03-22"
+      },
+      {
+        "name": "Meena Patel",
+        "email": "meena.patel@gmail.com",
+        "contact": "8879463755",
+        "type": "maketeer",
+        "dob": "1992-06-22"
+      },
+      {
+        "name": "Rekha Singh",
+        "email": "rekha.singh@gmail.com",
+        "contact": "8879463765",
+        "type": "maketeer",
+        "dob": "1990-05-22"
+      },
+      {
+        "name": "Deepa Nair",
+        "email": "deepa.nair@gmail.com",
+        "contact": "8879463775",
+        "type": "maketeer",
+        "dob": "1990-03-22"
+      }
+    ]
+  },
+  {
+    "groupName": "Oncology",
+    "users": [
+      {
+        "name": "Priya Singh",
+        "email": "priya.singh@gmail.com",
+        "contact": "8879463739",
+        "type": "doctor",
+        "dob": "1988-11-15"
+      },
+      {
+        "name": "Pooja Malhotra",
+        "email": "pooja.malhotra@gmail.com",
+        "contact": "8879463749",
+        "type": "doctor",
+        "dob": "1983-02-28"
+      },
+      {
+        "name": "Anjali Das",
+        "email": "anjali.das@gmail.com",
+        "contact": "8879463759",
+        "type": "doctor",
+        "dob": "1993-04-28"
+      },
+      {
+        "name": "Seema Malhotra",
+        "email": "seema.malhotra@gmail.com",
+        "contact": "8879463769",
+        "type": "doctor",
+        "dob": "1991-03-28"
+      },
+      {
+        "name": "Pooja Malhotra",
+        "email": "pooja.malhotra2@gmail.com",
+        "contact": "8879463779",
+        "type": "doctor",
+        "dob": "1983-02-28"
+      },
+      {
+        "name": "Dr. Alok Mehta",
+        "email": "alok.mehta@gmail.com",
+        "contact": "8879463792",
+        "type": "doctor",
+        "dob": "1987-12-11"
+      },
+      {
+        "name": "Dr. Shruti Sinha",
+        "email": "shruti.sinha@gmail.com",
+        "contact": "8879463793",
+        "type": "doctor",
+        "dob": "1990-05-14"
+      },
+      {
+        "name": "Dr. Kunal Jain",
+        "email": "kunal.jain@gmail.com",
+        "contact": "8879463794",
+        "type": "doctor",
+        "dob": "1985-02-21"
+      },
+      {
+        "name": "Dr. Reema Chawla",
+        "email": "reema.chawla@gmail.com",
+        "contact": "8879463795",
+        "type": "doctor",
+        "dob": "1992-09-09"
+      },
+      {
+        "name": "Dr. Anup Roy",
+        "email": "anup.roy@gmail.com",
+        "contact": "8879463796",
+        "type": "maketeer",
+        "dob": "1984-08-03"
+      }
+    ]
+  },
+  {
+    "groupName": "Dermatology",
+    "users": [
+      {
+        "name": "Ravi Kumar",
+        "email": "ravi.kumar@gmail.com",
+        "contact": "8879463738",
+        "type": "doctor",
+        "dob": "1990-07-20"
+      },
+      {
+        "name": "Amit Desai",
+        "email": "amit.desai@gmail.com",
+        "contact": "8879463748",
+        "type": "doctor",
+        "dob": "1993-10-15"
+      },
+      {
+        "name": "Sanjay Gupta",
+        "email": "sanjay.gupta@gmail.com",
+        "contact": "8879463758",
+        "type": "doctor",
+        "dob": "1986-01-15"
+      },
+      {
+        "name": "Hari Desai",
+        "email": "hari.desai@gmail.com",
+        "contact": "8879463768",
+        "type": "doctor",
+        "dob": "1984-12-15"
+      }
+    ]
+  },
+  {
+    "groupName": "Endocrinology",
+    "users": [
+      {
+        "name": "Sneha Reddy",
+        "email": "sneha.reddy@gmail.com",
+        "contact": "8879463741",
+        "type": "others",
+        "dob": "1995-09-10"
+      },
+      {
+        "name": "Sunita Kapoor",
+        "email": "sunita.kapoor@gmail.com",
+        "contact": "8879463751",
+        "type": "others",
+        "dob": "1988-12-05"
+      },
+      {
+        "name": "Shalini Kumar",
+        "email": "shalini.kumar@gmail.com",
+        "contact": "8879463761",
+        "type": "others",
+        "dob": "1991-12-05"
+      },
+      {
+        "name": "Lata Kapoor",
+        "email": "lata.kapoor@gmail.com",
+        "contact": "8879463771",
+        "type": "others",
+        "dob": "1992-11-05"
+      },
+      {
+        "name": "Sunita Kapoor",
+        "email": "sunita.kapoor2@gmail.com",
+        "contact": "8879463781",
+        "type": "others",
+        "dob": "1988-12-05"
+      },
+      {
+        "name": "Dr. Meera Sharma",
+        "email": "meera.sharma@gmail.com",
+        "contact": "8879463797",
+        "type": "others",
+        "dob": "1986-07-22"
+      },
+      {
+        "name": "Dr. Sameer Khan",
+        "email": "sameer.khan@gmail.com",
+        "contact": "8879463798",
+        "type": "physician",
+        "dob": "1985-03-15"
+      },
+      {
+        "name": "Dr. Radhika Joshi",
+        "email": "radhika.joshi@gmail.com",
+        "contact": "8879463799",
+        "type": "physician",
+        "dob": "1994-11-27"
+      },
+      {
+        "name": "Dr. Gaurav Mishra",
+        "email": "gaurav.mishra@gmail.com",
+        "contact": "8879463800",
+        "type": "physician",
+        "dob": "1983-04-06"
+      },
+      {
+        "name": "Dr. Ananya Ghosh",
+        "email": "ananya.ghosh@gmail.com",
+        "contact": "8879463801",
+        "type": "physician",
+        "dob": "1991-02-16"
+      },
+      {
+        "name": "Dr. Ashok Sharma",
+        "email": "ashok.sharma@gmail.com",
+        "contact": "8879463802",
+        "type": "doctor",
+        "dob": "1989-10-09"
+      },
+      {
+        "name": "Dr. Kavya Menon",
+        "email": "kavya.menon@gmail.com",
+        "contact": "8879463803",
+        "type": "doctor",
+        "dob": "1988-05-03"
+      }
+    ]
+  }
+]

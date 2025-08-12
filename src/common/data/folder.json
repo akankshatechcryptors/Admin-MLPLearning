@@ -1,0 +1,96 @@
+[
+  {
+    "id": 1,
+    "folderName": "Class 6",
+    "tests": [
+      {
+        "id": 101,
+        "testName": "Mid Term Test",
+        "sections": [
+          {
+            "id": 1001,
+            "sectionName": "Mathematics",
+            "pdf": "math_section.pdf",
+            "questions": [
+              "What is 2 + 2?",
+              "Find the square root of 144.",
+              "Solve: 5x - 10 = 0"
+            ]
+          },
+          {
+            "id": 1002,
+            "sectionName": "Science",
+            "pdf": "science_section.pdf",
+            "questions": [
+              "Explain the water cycle.",
+              "What is photosynthesis?",
+              "Name the planets in the solar system."
+            ]
+          },
+          {
+            "id": 1003,
+            "sectionName": "English",
+            "pdf": "english_section.pdf",
+            "questions": [
+              "Write a short essay on 'My School'.",
+              "Find synonyms for 'Happy'.",
+              "Correct the sentence: She go to school everyday."
+            ]
+          },
+          {
+            "id": 1004,
+            "sectionName": "History",
+            "pdf": "history_section.pdf",
+            "questions": [
+              "Who was the first president of USA?",
+              "When was World War II?",
+              "Explain the Industrial Revolution."
+            ]
+          },
+          {
+            "id": 1005,
+            "sectionName": "Geography",
+            "pdf": "geography_section.pdf",
+            "questions": [
+              "What is the capital of Japan?",
+              "Define longitude and latitude.",
+              "Name three deserts in the world."
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": 2,
+    "folderName": "Class 7",
+    "tests": [
+      {
+        "id": 102,
+        "testName": "Final Exam",
+        "sections": [
+          {
+            "id": 2001,
+            "sectionName": "Mathematics",
+            "pdf": "math_final.pdf",
+            "questions": [
+              "What is the value of π?",
+              "Solve: 2x² + 3x - 2 = 0",
+              "Convert 0.75 into a fraction."
+            ]
+          },
+          {
+            "id": 2002,
+            "sectionName": "Science",
+            "pdf": "science_final.pdf",
+            "questions": [
+              "Explain Newton's three laws of motion.",
+              "What is an ecosystem?",
+              "Name three renewable energy sources."
+            ]
+          }
+        ]
+      }
+    ]
+  }
+]
