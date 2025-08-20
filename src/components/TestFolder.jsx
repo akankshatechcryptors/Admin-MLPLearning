@@ -20,6 +20,7 @@ import DeleteIcon from "@mui/icons-material/Delete";
 import FolderIcon from "@mui/icons-material/Folder";
 import AddIcon from "@mui/icons-material/Add";
 import Breadcrumbs from "./BreadCrumb";
+import { useNavigate } from "react-router-dom";
 
 export default function TestFoldersList({
   folders,
@@ -31,10 +32,12 @@ export default function TestFoldersList({
 }) {
   const [anchorEl, setAnchorEl] = useState(null);
   const [openModal, setOpenModal] = useState(false);
-  const [modalType, setModalType] = useState(""); // "folder" or "test"
+  const [modalType, setModalType] = useState(""); 
   const [isEditing, setIsEditing] = useState(false);
   const [name, setName] = useState("");
   const [editId, setEditId] = useState(null);
+
+  const navigate = useNavigate();
 
   const handleMenuOpen = (event) => setAnchorEl(event.currentTarget);
   const handleMenuClose = () => setAnchorEl(null);
@@ -66,19 +69,25 @@ export default function TestFoldersList({
     setOpenModal(false);
   };
 
+  const handleFolderClick = (folder) => {
+    if (onSelectFolder) onSelectFolder(folder);
+   const folderSlug = folder.name.replace(/\s+/g, "-");
+    navigate(`/tests/${folderSlug}`,{state:{folder:folder}});
+  };
+
   return (
-    <Paper sx={{ p: 2, bgcolor: "transparent", boxShadow: "none" }}>
+    <Box padding={1}>
       {/* Header */}
       <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
-        <Breadcrumbs/>
+        <Breadcrumbs />
         <Typography variant="h6" fontWeight="bold">
           Tests
         </Typography>
         <Button
-           variant="outlined"
-                     color="primary"
+          variant="outlined"
+          color="primary"
           startIcon={<AddIcon />}
-            sx={{ borderRadius: '50px', '&:hover': { backgroundColor: '#e3f2ff' } }}
+          sx={{ borderRadius: '50px', '&:hover': { backgroundColor: '#e3f2ff' } }}
           onClick={handleMenuOpen}
         >
           Create
@@ -97,9 +106,7 @@ export default function TestFoldersList({
         gap={5}
         p={2}
         sx={{
-          bgcolor: "#fff",
-          borderRadius: 2,
-          boxShadow: "0 2px 6px rgba(0,0,0,0.1)",
+          bgcolor: "transparent",
         }}
       >
         {folders.map((folder) => (
@@ -116,7 +123,7 @@ export default function TestFoldersList({
               transition: "all 0.2s ease",
               "&:hover": { backgroundColor: "#d9f0d9" },
             }}
-            onClick={() => onSelectFolder(folder)}
+            onClick={() => handleFolderClick(folder)}
           >
             {/* Edit Icon */}
             <IconButton
@@ -198,9 +205,7 @@ export default function TestFoldersList({
           <TextField
             autoFocus
             margin="dense"
-            label={
-              modalType === "folder" ? "Folder Name" : "Test Name"
-            }
+            label={modalType === "folder" ? "Folder Name" : "Test Name"}
             fullWidth
             value={name}
             onChange={(e) => setName(e.target.value)}
@@ -217,6 +222,6 @@ export default function TestFoldersList({
           </Button>
         </DialogActions>
       </Dialog>
-    </Paper>
+    </Box>
   );
 }

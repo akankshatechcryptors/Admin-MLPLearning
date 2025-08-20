@@ -1,47 +1,31 @@
-import React from 'react';
+// components/ConfirmDeleteDialog.jsx
+import React from "react";
 import {
   Dialog,
   DialogTitle,
   DialogContent,
   DialogActions,
   Button,
-  Typography
-} from '@mui/material';
+  Typography,
+} from "@mui/material";
 
-const ConfirmDialog = ({
-  open,
-  title = 'Confirm Action',
-  content = 'Are you sure you want to proceed?',
-  confirmText = 'Yes',
-  cancelText = 'Cancel',
-  onConfirm,
-  onCancel
-}) => {
+export default function ConfirmDeleteDialog({ open, onClose, onConfirm, itemName }) {
   return (
-    <Dialog
-      open={open}
-      onClose={onCancel}
-      maxWidth="xs"
-      fullWidth
-    >
-      <DialogTitle>{title}</DialogTitle>
+    <Dialog open={open} onClose={onClose}>
+      <DialogTitle>Confirm Delete</DialogTitle>
       <DialogContent>
-        <Typography variant="body1">{content}</Typography>
+        <Typography>
+          Are you sure you want to delete <strong>{itemName}</strong>?
+        </Typography>
       </DialogContent>
       <DialogActions>
-        <Button onClick={onCancel} variant="outlined" color="inherit">
-          {cancelText}
+        <Button onClick={onClose} variant="outlined" color="secondary">
+          Cancel
         </Button>
-        <Button
-          onClick={onConfirm}
-          variant="contained"
-          color="error"
-        >
-          {confirmText}
+        <Button onClick={onConfirm} variant="contained" color="error">
+          Delete
         </Button>
       </DialogActions>
     </Dialog>
   );
-};
-
-export default ConfirmDialog;
+}

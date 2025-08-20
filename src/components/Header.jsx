@@ -18,7 +18,7 @@ import { AccountCircle, Visibility, VisibilityOff } from '@mui/icons-material';
 import SearchIcon from '@mui/icons-material/Search';
 import AuthContext from '../common/AuthContext';
 import { useNavigate } from 'react-router-dom';
-
+import Logo from '../assets/logo.png'
 const Header = () => {
   const [anchorEl, setAnchorEl] = useState(null);
   const [passwordModalOpen, setPasswordModalOpen] = useState(false);
@@ -75,14 +75,32 @@ const Header = () => {
     <>
       <header className="bg-white shadow px-6 py-4 flex justify-between items-center overflow-hidden">
         {/* Title clickable to home */}
-        <Typography
-          variant="h5"
-          color="primary"
-          sx={{ cursor: 'pointer' }}
-          onClick={() => navigate('/')}
-        >
-          MLP Learning
-        </Typography>
+      {/* Title clickable to home */}
+<Box
+  sx={{
+    display: 'flex',
+    alignItems: 'center',
+    cursor: 'pointer',
+    flexDirection:"column"
+  }}
+  onClick={() => navigate('/')}
+>
+  <img
+    src={Logo}
+    alt="MLP Learning"
+    style={{
+      height: '40px',
+      width: 'auto',
+      marginRight: '8px'
+    }}
+  />
+  <Typography
+    fontSize='15px'
+    color="primary"
+  >
+    MLP Learning
+  </Typography>
+</Box>
 
         {/* Search bar */}
         <Box

@@ -9,7 +9,7 @@ const DashboardCard = ({ title, subtitle, icon, bgColor, path }) => {
     <motion.div
       whileHover={{ scale: 1.05 }}
       onClick={() => navigate(path)}
-      className={`rounded-xl shadow-md p-6 cursor-pointer w-full sm:w-[250px] min-h-[150px] ${bgColor} text-black transition`}
+      className={`rounded-xl shadow-md p-6 cursor-pointer w-full sm:w-[350px] min-h-[150px] ${bgColor} text-black transition`}
     >
       <div className="text-5xl mb-4">{icon}</div>
       <h3 className="font-bold text-lg">{title}</h3>

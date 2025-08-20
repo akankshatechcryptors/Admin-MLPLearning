@@ -15,6 +15,8 @@ import Test from './pages/Test'
 import Group from './pages/Group'
 import TestSummary from './pages/TestSummary'
 import Admin from './pages/Admins'
+import TestList  from './components/TestCards'
+import TestQuestions from './pages/TestQuestions'
 function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [email, setEmail] = useState('');
@@ -72,9 +74,11 @@ function App() {
           <Route index element={<Home />} />
           <Route path="groups" element={<Users />} />
           <Route path="tests" element={<Test/>} />
+          <Route path="tests/:folderName" element={<TestList/>}/>
           <Route path="users" element={<Group/>}/>
           <Route path="summary" element={<TestSummary/>}/>
           <Route path="admins" element={<Admin/>}/>
+          <Route path="add-questions" element={<TestQuestions/>}/>
         </Route>
         <Route path="*" element={<div>404 Not Found</div>} />
       </Route>

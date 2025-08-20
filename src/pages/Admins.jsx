@@ -1,81 +1,70 @@
-import React, { useState, useEffect, useMemo } from "react";
-import {
-  MantineReactTable,
-  useMantineReactTable,
-} from "mantine-react-table";
-import {
-  Modal,
-  TextInput,
-  PasswordInput,
-  Group,
-  Loader,
-} from "@mantine/core";
-import { Button, Typography, IconButton } from "@mui/material";
+import React, { useState, useEffect, useMemo, useCallback, useRef } from "react";
+import { MantineReactTable, useMantineReactTable } from "mantine-react-table";
+import { Modal, PasswordInput, Group, Loader } from "@mantine/core";
+import { Button,TextField,  Typography, IconButton,Box } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
-import { randomId } from "@mantine/hooks";
 import admin from "../common/data/user.json";
 import Breadcrumbs from "../components/BreadCrumb";
+import ConfirmDeleteDialog from "../common/ConfirmDelete";
+import { toast } from "react-toastify";
 
 const AdminsPage = () => {
+  const DEBUG = false; // disable to prevent verbose freeze
+
   const [admins, setAdmins] = useState([]);
   const [loading, setLoading] = useState(true);
   const [modalOpen, setModalOpen] = useState(false);
   const [editMode, setEditMode] = useState(false);
   const [editId, setEditId] = useState(null);
-  const [newAdmin, setNewAdmin] = useState({
-    name: "",
-    email: "",
-    contact: "",
-    password: "",
-  });
+  const [deleteId, setDeleteId] = useState(null);
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [newAdmin, setNewAdmin] = useState({ name: "", email: "", contact: "", password: "" });
 
-  // Get logged-in user from localStorage
-  const loggedInUser = JSON.parse(localStorage.getItem("user"));
-
-  // Load admins from JSON
   useEffect(() => {
     setAdmins(admin);
     setLoading(false);
   }, []);
 
-  // Filter out the logged-in admin
+  const loggedInUser = useMemo(() => {
+    try {
+      return JSON.parse(localStorage.getItem("user"));
+    } catch {
+      return null;
+    }
+  }, []);
+
   const filteredAdmins = useMemo(
     () => admins.filter((a) => a.id !== loggedInUser?.id),
     [admins, loggedInUser]
   );
 
-  // Add or update admin
-  const handleSaveAdmin = () => {
-    if (!newAdmin.name || !newAdmin.email || !newAdmin.contact || !newAdmin.password) {
+  const resetForm = useCallback(() => {
+    setNewAdmin({ name: "", email: "", contact: "", password: "" });
+    setEditMode(false);
+    setEditId(null);
+  }, []);
+
+  const handleSaveAdmin = useCallback(() => {
+    const { name, email, contact, password } = newAdmin;
+    if (!name || !email || !contact || !password) {
       alert("Please fill all fields");
       return;
     }
 
     if (editMode) {
-      setAdmins((prev) =>
-        prev.map((a) =>
-          a.id === editId ? { ...a, ...newAdmin } : a
-        )
-      );
+      setAdmins((prev) => prev.map((a) => (a.id === editId ? { ...a, ...newAdmin } : a)));
     } else {
-      const adminObj = {
-        id: randomId(),
-        ...newAdmin,
-        token: `token${Date.now()}`,
-      };
-      setAdmins((prev) => [...prev, adminObj]);
+      const nextId = Math.max(0, ...admins.map((a) => Number(a.id) || 0)) + 1;
+      setAdmins((prev) => [...prev, { id: nextId, ...newAdmin, token: `token${nextId}` }]);
     }
 
-    setNewAdmin({ name: "", email: "", contact: "", password: "" });
-    setEditMode(false);
-    setEditId(null);
+    resetForm();
     setModalOpen(false);
-  };
+  }, [newAdmin, editMode, editId, admins, resetForm]);
 
-  // Edit admin
-  const handleEditAdmin = (adminData) => {
+  const handleEditAdmin = useCallback((adminData) => {
     setNewAdmin({
       name: adminData.name,
       email: adminData.email,
@@ -85,59 +74,42 @@ const AdminsPage = () => {
     setEditId(adminData.id);
     setEditMode(true);
     setModalOpen(true);
-  };
+  }, []);
 
-  // Delete admin
-  const handleDeleteAdmin = (id) => {
-    if (window.confirm("Are you sure you want to delete this admin?")) {
-      setAdmins((prev) => prev.filter((a) => a.id !== id));
-    }
-  };
+  const requestDeleteAdmin = useCallback((id) => {
+    setDeleteId(id);
+    setConfirmOpen(true);
+  }, []);
 
-  // Memoized columns
-  const columns = useMemo(
-    () => [
-      {
-        accessorKey: "srNo",
-        header: "Sr. No.",
-        size: 50,
-        Cell: ({ row }) => row.index + 1,
-      },
-      { accessorKey: "name", header: "Name" },
-      { accessorKey: "email", header: "Email" },
-      { accessorKey: "contact", header: "Contact" },
-      {
-        accessorKey: "actions",
-        header: "Actions",
-        size: 100,
-        Cell: ({ row }) => (
-          <div style={{ display: "flex", gap: "8px" }}>
-            <IconButton
-              color="primary"
-              onClick={() => handleEditAdmin(row.original)}
-            >
-              <EditIcon />
-            </IconButton>
-            <IconButton
-              color="error"
-              onClick={() => handleDeleteAdmin(row.original.id)}
-            >
-              <DeleteIcon />
-            </IconButton>
-          </div>
-        ),
-      },
-    ],
-    [] // static columns
-  );
+  const confirmDelete = useCallback(() => {
+    setAdmins((prev) => prev.filter((a) => a.id !== deleteId));
+    setConfirmOpen(false);
+    toast.success("Admin deleted successfully");
+  }, [deleteId]);
 
-  // Memoized table data
-  const tableData = useMemo(() => filteredAdmins, [filteredAdmins]);
+  const columns = useMemo(() => [
+    { accessorKey: "srNo", header: "Sr. No.", size: 50, Cell: ({ row }) => row.index + 1 },
+    { accessorKey: "name", header: "Name" },
+    { accessorKey: "email", header: "Email" },
+    { accessorKey: "contact", header: "Contact" },
+    {
+      accessorKey: "actions",
+      header: "Actions",
+      size: 100,
+      Cell: ({ row }) => (
+        <div style={{ display: "flex", gap: "8px" }}>
+          <IconButton color="primary" onClick={() => handleEditAdmin(row.original)}>
+            <EditIcon />
+          </IconButton>
+          <IconButton color="error" onClick={() => requestDeleteAdmin(row.original.id)}>
+            <DeleteIcon />
+          </IconButton>
+        </div>
+      ),
+    },
+  ], [handleEditAdmin, requestDeleteAdmin]);
 
-  const table = useMantineReactTable({
-    columns,
-    data: tableData,
-  });
+  const table = useMantineReactTable({ columns, data: filteredAdmins });
 
   if (loading) {
     return (
@@ -148,22 +120,16 @@ const AdminsPage = () => {
   }
 
   return (
-    <div className="p-6">
+    <Box padding={3}>
       <Group position="apart" className="mb-4" style={{ alignItems: "center" }}>
         <Breadcrumbs />
-        <Typography variant="h5" sx={{ fontWeight: 600 }}>
-          Admins Management
-        </Typography>
+        <Typography variant="h5" sx={{ fontWeight: 600 }}>Admins Management</Typography>
         <Button
           variant="outlined"
           color="primary"
           startIcon={<AddIcon />}
           sx={{ borderRadius: "50px", "&:hover": { backgroundColor: "#e3f2ff" } }}
-          onClick={() => {
-            setNewAdmin({ name: "", email: "", contact: "", password: "" });
-            setEditMode(false);
-            setModalOpen(true);
-          }}
+          onClick={() => { resetForm(); setModalOpen(true); }}
         >
           Add Admin
         </Button>
@@ -171,42 +137,31 @@ const AdminsPage = () => {
 
       <MantineReactTable table={table} />
 
-      <Modal
-        opened={modalOpen}
-        onClose={() => {
-          setModalOpen(false);
-          setEditMode(false);
-          setNewAdmin({ name: "", email: "", contact: "", password: "" });
-        }}
-        title={editMode ? "Edit Admin" : "Add New Admin"}
-        centered
-      >
-        <TextInput
-          label="Name"
-          placeholder="Enter name"
-          value={newAdmin.name}
-          onChange={(e) => setNewAdmin({ ...newAdmin, name: e.target.value })}
-          mb="sm"
-        />
-        <TextInput
-          label="Email"
-          placeholder="Enter email"
-          value={newAdmin.email}
-          onChange={(e) => setNewAdmin({ ...newAdmin, email: e.target.value })}
-          mb="sm"
-        />
-        <TextInput
-          label="Contact"
-          placeholder="Enter contact number"
-          value={newAdmin.contact}
-          onChange={(e) => setNewAdmin({ ...newAdmin, contact: e.target.value })}
-          mb="sm"
-        />
-        <PasswordInput
-          label="Password"
-          placeholder="Enter password"
-          value={newAdmin.password}
-          onChange={(e) => setNewAdmin({ ...newAdmin, password: e.target.value })}
-          mb="sm"
-        />
- 
+      {/* Modal for Add/Edit */}
+      <Modal opened={modalOpen} onClose={() => { setModalOpen(false); resetForm(); }} title={editMode ? "Edit Admin" : "Add New Admin"} centered>
+        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, mt: 2 }}>
+        <TextField label="Name" value={newAdmin.name} onChange={(e) => setNewAdmin((p) => ({ ...p, name: e.target.value }))} mb="sm" />
+        <TextField label="Email" value={newAdmin.email} onChange={(e) => setNewAdmin((p) => ({ ...p, email: e.target.value }))} mb="sm" />
+        <TextField label="Contact" value={newAdmin.contact} onChange={(e) => setNewAdmin((p) => ({ ...p, contact: e.target.value }))} mb="sm" />
+        <TextField label="Password" value={newAdmin.password} onChange={(e) => setNewAdmin((p) => ({ ...p, password: e.target.value }))} mb="sm" />
+        <Group position="right" mt="md">
+          <Button variant="contained" onClick={handleSaveAdmin}>
+            {editMode ? "Update" : "Save"}
+          </Button>
+        </Group>
+        </Box>
+      </Modal>
+
+      {/* Reusable Confirmation Dialog */}
+      <ConfirmDeleteDialog
+        open={confirmOpen}
+        onClose={() => setConfirmOpen(false)}
+        onConfirm={confirmDelete}
+        title="Delete Admin"
+        message="Are you sure you want to delete this admin?"
+      />
+    </Box>
+  );
+};
+
+export default AdminsPage;
