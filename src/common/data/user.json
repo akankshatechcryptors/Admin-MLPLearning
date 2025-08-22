@@ -2,19 +2,100 @@
   {
     "id": 1,
     "email": "admin@hospital.com",
-    "password": "admin123",
+    "password": "GZNNjmeojtLIqC/4uAZPng==",
     "name": "Admin",
     "contact": "+91-9999999999",
-    "token": "abc123securetoken"
+    "token": "abc123securetoken",
+    "type": "Superadmin"
   },
-  { "id": 2, "email": "alice@hospital.com", "password": "alice123", "name": "Alice Johnson", "contact": "+91-8888888881", "token": "token2" },
-  { "id": 3, "email": "bob@hospital.com", "password": "bob123", "name": "Bob Smith", "contact": "+91-8888888882", "token": "token3" },
-  { "id": 4, "email": "charlie@hospital.com", "password": "charlie123", "name": "Charlie Brown", "contact": "+91-8888888883", "token": "token4" },
-  { "id": 5, "email": "david@hospital.com", "password": "david123", "name": "David Wilson", "contact": "+91-8888888884", "token": "token5" },
-  { "id": 6, "email": "emma@hospital.com", "password": "emma123", "name": "Emma Davis", "contact": "+91-8888888885", "token": "token6" },
-  { "id": 7, "email": "frank@hospital.com", "password": "frank123", "name": "Frank Miller", "contact": "+91-8888888886", "token": "token7" },
-  { "id": 8, "email": "grace@hospital.com", "password": "grace123", "name": "Grace Taylor", "contact": "+91-8888888887", "token": "token8" },
-  { "id": 9, "email": "henry@hospital.com", "password": "henry123", "name": "Henry Moore", "contact": "+91-8888888888", "token": "token9" },
-  { "id": 10, "email": "isabella@hospital.com", "password": "isabella123", "name": "Isabella Anderson", "contact": "+91-8888888889", "token": "token10" },
-  { "id": 11, "email": "jack@hospital.com", "password": "jack123", "name": "Jack Thomas", "contact": "+91-8888888890", "token": "token11" }
+  {
+    "id": 2,
+    "email": "alice@hospital.com",
+    "password": "DsVkwe4Lp1NnDFzVp90g8g==",
+    "name": "Alice Johnson",
+    "contact": "+91-8888888881",
+    "token": "token2",
+    "type": "ContentAdmin"
+  },
+  {
+    "id": 3,
+    "email": "bob@hospital.com",
+    "password": "bob123",
+    "name": "Bob Smith",
+    "contact": "+91-8888888882",
+    "token": "token3",
+    "type": "Observer"
+  },
+  {
+    "id": 4,
+    "email": "charlie@hospital.com",
+    "password": "charlie123",
+    "name": "Charlie Brown",
+    "contact": "+91-8888888883",
+    "token": "token4",
+    "type": "ContentAdmin"
+  },
+  {
+    "id": 5,
+    "email": "david@hospital.com",
+    "password": "david123",
+    "name": "David Wilson",
+    "contact": "+91-8888888884",
+    "token": "token5",
+    "type": "Observer"
+  },
+  {
+    "id": 6,
+    "email": "emma@hospital.com",
+    "password": "emma123",
+    "name": "Emma Davis",
+    "contact": "+91-8888888885",
+    "token": "token6",
+    "type": "ContentAdmin"
+  },
+  {
+    "id": 7,
+    "email": "frank@hospital.com",
+    "password": "frank123",
+    "name": "Frank Miller",
+    "contact": "+91-8888888886",
+    "token": "token7",
+    "type": "Observer"
+  },
+  {
+    "id": 8,
+    "email": "grace@hospital.com",
+    "password": "grace123",
+    "name": "Grace Taylor",
+    "contact": "+91-8888888887",
+    "token": "token8",
+    "type": "ContentAdmin"
+  },
+  {
+    "id": 9,
+    "email": "henry@hospital.com",
+    "password": "henry123",
+    "name": "Henry Moore",
+    "contact": "+91-8888888888",
+    "token": "token9",
+    "type": "Observer"
+  },
+  {
+    "id": 10,
+    "email": "isabella@hospital.com",
+    "password": "isabella123",
+    "name": "Isabella Anderson",
+    "contact": "+91-8888888889",
+    "token": "token10",
+    "type": "ContentAdmin"
+  },
+  {
+    "id": 11,
+    "email": "jack@hospital.com",
+    "password": "jack123",
+    "name": "Jack Thomas",
+    "contact": "+91-8888888890",
+    "token": "token11",
+    "type": "Observer"
+  }
 ]

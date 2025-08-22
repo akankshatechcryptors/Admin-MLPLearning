@@ -23,7 +23,7 @@ import {
 } from "chart.js";
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, Tooltip, Legend);
-
+import Breadcrumbs from "../components/BreadCrumb";
 export default function TestResultsUI() {
   const [open, setOpen] = useState(false);
   const [selectedTest, setSelectedTest] = useState(null);
@@ -145,10 +145,16 @@ const tests = [
   };
 
   return (
-    <Paper sx={{ p: 2, borderRadius: 3 }}>
+    <Box className="p-6 bg-gray-50 min-h-screen">
+     <Box className="flex justify-between">
+       <Breadcrumbs/>
       <Typography variant="h6" fontWeight="bold" mb={2}>
         Tests ({tests.length})
       </Typography>
+      <div>
+        
+      </div>
+     </Box>
 
       {tests.map((test) => (
         <Box
@@ -157,7 +163,6 @@ const tests = [
             display: "flex",
             justifyContent: "space-between",
             alignItems: "center",
-            bgcolor: "#f1f8e9",
             borderRadius: 2,
             p: 1.5,
             mb: 1,
@@ -253,6 +258,6 @@ const tests = [
           </Box>
         </DialogContent>
       </Dialog>
-    </Paper>
+    </Box>
   );
 }

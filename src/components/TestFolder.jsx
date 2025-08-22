@@ -76,7 +76,7 @@ export default function TestFoldersList({
   };
 
   return (
-    <Box padding={1}>
+    <Box>
       {/* Header */}
       <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
         <Breadcrumbs />

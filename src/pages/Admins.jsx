@@ -1,7 +1,17 @@
-import React, { useState, useEffect, useMemo, useCallback, useRef } from "react";
+import React, { useState, useEffect, useMemo, useCallback } from "react";
 import { MantineReactTable, useMantineReactTable } from "mantine-react-table";
-import { Modal, PasswordInput, Group, Loader } from "@mantine/core";
-import { Button,TextField,  Typography, IconButton,Box } from "@mui/material";
+import { Modal, Group } from "@mantine/core";
+import {
+  Button,
+  TextField,
+  Typography,
+  IconButton,
+  Box,
+  MenuItem,
+  Select,
+  InputLabel,
+  FormControl,
+} from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
@@ -9,10 +19,9 @@ import admin from "../common/data/user.json";
 import Breadcrumbs from "../components/BreadCrumb";
 import ConfirmDeleteDialog from "../common/ConfirmDelete";
 import { toast } from "react-toastify";
+import { encryptPassword } from "../common/crypt"; // 🔑 encryption util
 
 const AdminsPage = () => {
-  const DEBUG = false; // disable to prevent verbose freeze
-
   const [admins, setAdmins] = useState([]);
   const [loading, setLoading] = useState(true);
   const [modalOpen, setModalOpen] = useState(false);
@@ -20,7 +29,14 @@ const AdminsPage = () => {
   const [editId, setEditId] = useState(null);
   const [deleteId, setDeleteId] = useState(null);
   const [confirmOpen, setConfirmOpen] = useState(false);
-  const [newAdmin, setNewAdmin] = useState({ name: "", email: "", contact: "", password: "" });
+
+  const [newAdmin, setNewAdmin] = useState({
+    name: "",
+    email: "",
+    contact: "",
+    password: "",
+    type: "Observer", // default
+  });
 
   useEffect(() => {
     setAdmins(admin);
@@ -41,23 +57,63 @@ const AdminsPage = () => {
   );
 
   const resetForm = useCallback(() => {
-    setNewAdmin({ name: "", email: "", contact: "", password: "" });
+    setNewAdmin({
+      name: "",
+      email: "",
+      contact: "",
+      password: "",
+      type: "Observer",
+    });
     setEditMode(false);
     setEditId(null);
   }, []);
 
   const handleSaveAdmin = useCallback(() => {
-    const { name, email, contact, password } = newAdmin;
-    if (!name || !email || !contact || !password) {
+    const { name, email, contact, password, type } = newAdmin;
+    if (!name || !email || !contact || !type) {
       alert("Please fill all fields");
       return;
     }
 
+    // 🔐 Encrypt password if provided
+    const encryptedPassword = password ? encryptPassword(password) : null;
+
     if (editMode) {
-      setAdmins((prev) => prev.map((a) => (a.id === editId ? { ...a, ...newAdmin } : a)));
+      setAdmins((prev) =>
+        prev.map((a) =>
+          a.id === editId
+            ? {
+                ...a,
+                name,
+                email,
+                contact,
+                type,
+                ...(encryptedPassword ? { password: encryptedPassword } : {}),
+              }
+            : a
+        )
+      );
+      toast.success("Admin updated successfully");
     } else {
-      const nextId = Math.max(0, ...admins.map((a) => Number(a.id) || 0)) + 1;
-      setAdmins((prev) => [...prev, { id: nextId, ...newAdmin, token: `token${nextId}` }]);
+      if (!encryptedPassword) {
+        alert("Password is required for new admins");
+        return;
+      }
+      const nextId =
+        Math.max(0, ...admins.map((a) => Number(a.id) || 0)) + 1;
+      setAdmins((prev) => [
+        ...prev,
+        {
+          id: nextId,
+          name,
+          email,
+          contact,
+          type,
+          password: encryptedPassword, // ✅ encrypted
+          token: `token${nextId}`,
+        },
+      ]);
+      toast.success("Admin added successfully");
     }
 
     resetForm();
@@ -69,7 +125,8 @@ const AdminsPage = () => {
       name: adminData.name,
       email: adminData.email,
       contact: adminData.contact,
-      password: adminData.password || "",
+      password: "", // always blank when editing
+      type: adminData.type || "Observer",
     });
     setEditId(adminData.id);
     setEditMode(true);
@@ -87,49 +144,67 @@ const AdminsPage = () => {
     toast.success("Admin deleted successfully");
   }, [deleteId]);
 
-  const columns = useMemo(() => [
-    { accessorKey: "srNo", header: "Sr. No.", size: 50, Cell: ({ row }) => row.index + 1 },
-    { accessorKey: "name", header: "Name" },
-    { accessorKey: "email", header: "Email" },
-    { accessorKey: "contact", header: "Contact" },
-    {
-      accessorKey: "actions",
-      header: "Actions",
-      size: 100,
-      Cell: ({ row }) => (
-        <div style={{ display: "flex", gap: "8px" }}>
-          <IconButton color="primary" onClick={() => handleEditAdmin(row.original)}>
-            <EditIcon />
-          </IconButton>
-          <IconButton color="error" onClick={() => requestDeleteAdmin(row.original.id)}>
-            <DeleteIcon />
-          </IconButton>
-        </div>
-      ),
-    },
-  ], [handleEditAdmin, requestDeleteAdmin]);
+  const columns = useMemo(
+    () => [
+      {
+        accessorKey: "srNo",
+        header: "Sr. No.",
+        size: 50,
+        Cell: ({ row }) => row.index + 1,
+      },
+      { accessorKey: "name", header: "Name" },
+      { accessorKey: "email", header: "Email" },
+      { accessorKey: "type", header: "Role" },
+      {
+        accessorKey: "actions",
+        header: "Actions",
+        size: 100,
+        Cell: ({ row }) => (
+          <div style={{ display: "flex", gap: "8px" }}>
+            <IconButton
+              color="primary"
+              onClick={() => handleEditAdmin(row.original)}
+            >
+              <EditIcon />
+            </IconButton>
+            <IconButton
+              color="error"
+              onClick={() => requestDeleteAdmin(row.original.id)}
+            >
+              <DeleteIcon />
+            </IconButton>
+          </div>
+        ),
+      },
+    ],
+    [handleEditAdmin, requestDeleteAdmin]
+  );
 
   const table = useMantineReactTable({ columns, data: filteredAdmins });
 
-  if (loading) {
-    return (
-      <div className="flex justify-center items-center min-h-screen">
-        <Loader size="lg" />
-      </div>
-    );
-  }
-
   return (
-    <Box padding={3}>
-      <Group position="apart" className="mb-4" style={{ alignItems: "center" }}>
+    <Box className="p-6 bg-gray-50 min-h-screen">
+      <Group
+        position="apart"
+        className="mb-4"
+        style={{ alignItems: "center" }}
+      >
         <Breadcrumbs />
-        <Typography variant="h5" sx={{ fontWeight: 600 }}>Admins Management</Typography>
+        <Typography variant="h5" sx={{ fontWeight: 600 }}>
+          Admins Management
+        </Typography>
         <Button
           variant="outlined"
           color="primary"
           startIcon={<AddIcon />}
-          sx={{ borderRadius: "50px", "&:hover": { backgroundColor: "#e3f2ff" } }}
-          onClick={() => { resetForm(); setModalOpen(true); }}
+          sx={{
+            borderRadius: "50px",
+            "&:hover": { backgroundColor: "#e3f2ff" },
+          }}
+          onClick={() => {
+            resetForm();
+            setModalOpen(true);
+          }}
         >
           Add Admin
         </Button>
@@ -138,17 +213,59 @@ const AdminsPage = () => {
       <MantineReactTable table={table} />
 
       {/* Modal for Add/Edit */}
-      <Modal opened={modalOpen} onClose={() => { setModalOpen(false); resetForm(); }} title={editMode ? "Edit Admin" : "Add New Admin"} centered>
-        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, mt: 2 }}>
-        <TextField label="Name" value={newAdmin.name} onChange={(e) => setNewAdmin((p) => ({ ...p, name: e.target.value }))} mb="sm" />
-        <TextField label="Email" value={newAdmin.email} onChange={(e) => setNewAdmin((p) => ({ ...p, email: e.target.value }))} mb="sm" />
-        <TextField label="Contact" value={newAdmin.contact} onChange={(e) => setNewAdmin((p) => ({ ...p, contact: e.target.value }))} mb="sm" />
-        <TextField label="Password" value={newAdmin.password} onChange={(e) => setNewAdmin((p) => ({ ...p, password: e.target.value }))} mb="sm" />
-        <Group position="right" mt="md">
-          <Button variant="contained" onClick={handleSaveAdmin}>
-            {editMode ? "Update" : "Save"}
-          </Button>
-        </Group>
+      <Modal
+        opened={modalOpen}
+        onClose={() => {
+          setModalOpen(false);
+          resetForm();
+        }}
+        title={editMode ? "Edit Admin" : "Add New Admin"}
+        centered
+      >
+        <Box sx={{ display: "flex", flexDirection: "column", gap: 2, mt: 2 }}>
+          <TextField
+            label="Name"
+            value={newAdmin.name}
+            onChange={(e) =>
+              setNewAdmin((p) => ({ ...p, name: e.target.value }))
+            }
+          />
+          <TextField
+            label="Email"
+            value={newAdmin.email}
+            onChange={(e) =>
+              setNewAdmin((p) => ({ ...p, email: e.target.value }))
+            }
+          />
+          <TextField
+            label="Password"
+            type="password"
+            value={newAdmin.password}
+            onChange={(e) =>
+              setNewAdmin((p) => ({ ...p, password: e.target.value }))
+            }
+          />
+
+          <FormControl fullWidth>
+            <InputLabel>Admin Type</InputLabel>
+            <Select
+              value={newAdmin.type}
+              label="Admin Type"
+              onChange={(e) =>
+                setNewAdmin((p) => ({ ...p, type: e.target.value }))
+              }
+            >
+              <MenuItem value="Superadmin">Super Admin</MenuItem>
+              <MenuItem value="ContentAdmin">Content Admin</MenuItem>
+              <MenuItem value="Observer">Observer</MenuItem>
+            </Select>
+          </FormControl>
+
+          <Group position="right" mt="md">
+            <Button variant="contained" onClick={handleSaveAdmin}>
+              {editMode ? "Update" : "Save"}
+            </Button>
+          </Group>
         </Box>
       </Modal>
 

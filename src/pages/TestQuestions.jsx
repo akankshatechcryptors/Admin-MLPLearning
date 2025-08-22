@@ -8,7 +8,7 @@ import Test from '../components/Test'
 export default function TestPage() {
 
   return (
-    <Box padding={1}>
+    <Box className="p-6 bg-gray-50 min-h-screen">
    <Test/>
     </Box>
   );

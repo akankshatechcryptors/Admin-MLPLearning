@@ -103,7 +103,7 @@ const [openAllotModal, setOpenAllotModal] = useState(false);
   };
 
   return (
-    <Box padding={3}>
+    <Box className="p-6 bg-gray-50 min-h-screen" >
       {/* Folders List */}
       <TestFoldersList
         folders={folders}

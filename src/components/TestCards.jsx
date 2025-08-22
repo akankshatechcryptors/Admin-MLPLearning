@@ -1,11 +1,7 @@
-import React,{useState}from "react";
+import React, { useState } from "react";
 import {
   Box,
-  Card,
-  CardContent,
   Typography,
-  IconButton,
-  Paper,
   Button,
   Menu,
   MenuItem,
@@ -14,275 +10,237 @@ import {
   DialogContent,
   DialogActions,
   TextField,
-  Chip
 } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
-import { useLocation,useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import Breadcrumbs from "./BreadCrumb";
-const TestCards = ({ onViewStats, onDelete }) => {
+import AllotTest from "./AllotTest";
+
+const DEFAULT_INSTRUCTIONS = `This is a timed test; the running time is displayed on top left corner of the screen.
+The bar above the question text displays the question numbers in the current section of the test. You can move to any question by clicking on the respective number.
+The question screen displays the question number along with the question and respective options.
+The top right of section above the question has an option to mark the question for review. You can later view the marked question.
+You can mark or unmark any option you have chosen by tapping on the respective option.
+The bottom left corner contains the option to move to the previous question.
+The bottom right corner contains the option to move to the next question.
+You can jump between sections (if allowed by tutor) by choosing the section in the bottom center drop down.
+You can submit the test at any point of time by clicking the Submit button on top right corner of the screen.
+Before submission, the screen shows a confirmation pop-up with the total number of questions in the test, questions answered and questions marked for review.
+Test must be completed in one attempt. Test once submitted cannot be re-attempted or started again.
+You should not change or close the test screen while attempting test.
+If the app is closed or screen is changed more than three times by any means, the test will be submitted automatically.
+After completion of test, a test summary screen will be displayed with section details & solutions.
+If something goes wrong, contact your tutor and communicate the problem.`;
+
+const TestCards = () => {
   const location = useLocation();
   const folderName = location.state?.folder?.name || "";
   const [anchorEl, setAnchorEl] = useState(null);
   const [openModal, setOpenModal] = useState(false);
-  const [modalType, setModalType] = useState(""); 
+  const [modalType, setModalType] = useState("");
   const [isEditing, setIsEditing] = useState(false);
   const [name, setName] = useState("");
+  const [instructions, setInstructions] = useState(DEFAULT_INSTRUCTIONS);
   const [editId, setEditId] = useState(null);
+  const [openAllotModal, setOpenAllotModal] = useState(false);
+  const [extraTests, setExtraTests] = useState([]); // only user-created or edited ones
 
   const navigate = useNavigate();
 
+  // --- your existing allTests stays untouched ---
+  const allTests = [
+    { id: 101, folderName: "Cardiology Test", title: "General Knowledge", organization: "TechCryptors", status: "Completed", startDate: "07/09/2025, 12:00 AM", endDate: "07/09/2025, 11:59 PM" },
+    { id: 102, folderName: "Cardiology Test", title: "Cardio Fitness", organization: "HeartCare Labs", status: "Upcoming", startDate: "10/09/2025, 10:00 AM", endDate: "10/09/2025, 2:00 PM" },
+    { id: 103, folderName: "Cardiology Test", title: "Heart Health Basics", organization: "CardioLife", status: "Alloted", startDate: "15/09/2025, 9:00 AM", endDate: "15/09/2025, 10:00 AM" },
+
+    { id: 201, folderName: "Neurology Test", title: "Brain Reflex Test", organization: "NeuroMind Clinic", status: "Completed", startDate: "05/09/2025, 1:00 PM", endDate: "05/09/2025, 3:00 PM" },
+    { id: 202, folderName: "Neurology Test", title: "Neuro Cognitive Skills", organization: "MindPlus Labs", status: "Upcoming", startDate: "12/09/2025, 2:00 PM", endDate: "12/09/2025, 4:00 PM" },
+    { id: 203, folderName: "Neurology Test", title: "Brain Health Basics", organization: "NeuroLife", status: "Completed", startDate: "20/09/2025, 10:00 AM", endDate: "20/09/2025, 11:00 AM" },
+
+    { id: 301, folderName: "Orthopedics Test", title: "Bone Strength Check", organization: "OrthoPlus", status: "Completed", startDate: "01/08/2025, 9:00 AM", endDate: "01/08/2025, 10:00 AM" },
+    { id: 302, folderName: "Orthopedics Test", title: "Joint Flexibility Test", organization: "FlexiCare", status: "Upcoming", startDate: "08/08/2025, 11:00 AM", endDate: "08/08/2025, 12:00 PM" },
+    { id: 303, folderName: "Orthopedics Test", title: "Posture Analysis", organization: "SpineCare", status: "Completed", startDate: "15/08/2025, 2:00 PM", endDate: "15/08/2025, 3:00 PM" },
+  ];
+
+  // Combine original + extra edits/additions
+  const tests = [
+    ...allTests.filter((t) => !extraTests.find((e) => e.id === t.id)),
+    ...extraTests,
+  ].filter((t) => t.folderName === folderName);
+
+  // Menu handlers
   const handleMenuOpen = (event) => setAnchorEl(event.currentTarget);
   const handleMenuClose = () => setAnchorEl(null);
 
   const handleOptionClick = (type) => {
     setModalType(type);
     setName("");
+    setInstructions(DEFAULT_INSTRUCTIONS);
     setIsEditing(false);
     setOpenModal(true);
     handleMenuClose();
   };
 
-  const handleEditClick = (folder) => {
-    setModalType("folder");
+  const handleEditTest = (test) => {
+    setModalType("test");
     setIsEditing(true);
-    setEditId(folder.id);
-    setName(folder.name);
+    setEditId(test.id);
+    setName(test.title);
+    setInstructions(test.instructions || DEFAULT_INSTRUCTIONS);
     setOpenModal(true);
   };
 
   const handleSave = () => {
-    if (isEditing && modalType === "folder") {
-      onEditFolder(editId, name);
-    } else if (modalType === "folder") {
-      onAddFolder(name);
-    } else if (modalType === "test") {
-      onAddTest(name);
+    if (modalType === "test") {
+      if (isEditing) {
+        setExtraTests((prev) => [
+          ...prev.filter((t) => t.id !== editId),
+          { ...allTests.find((t) => t.id === editId), id: editId, folderName, title: name, instructions },
+        ]);
+      } else {
+        const newTest = {
+          id: Date.now(),
+          folderName,
+          title: name,
+          organization: "TechCryptors",
+          status: "Upcoming",
+          startDate: "",
+          endDate: "",
+          instructions,
+        };
+        setExtraTests((prev) => [...prev, newTest]);
+      }
     }
     setOpenModal(false);
   };
 
-  // Sample data — 3 tests for each folder
-  const allTests = [
-    // Cardiology Test
-    {
-      id: 101,
-      folderName: "Cardiology Test",
-      title: "General Knowledge",
-      organization: "TechCryptors",
-      status: "Completed",
-      startDate: "07/09/2025, 12:00 AM",
-      endDate: "07/09/2025, 11:59 PM",
-    },
-    {
-      id: 102,
-      folderName: "Cardiology Test",
-      title: "Cardio Fitness",
-      organization: "HeartCare Labs",
-      status: "Upcoming",
-      startDate: "10/09/2025, 10:00 AM",
-      endDate: "10/09/2025, 2:00 PM",
-    },
-    {
-      id: 103,
-      folderName: "Cardiology Test",
-      title: "Heart Health Basics",
-      organization: "CardioLife",
-      status: "Alloted",
-      startDate: "15/09/2025, 9:00 AM",
-      endDate: "15/09/2025, 10:00 AM",
-    },
-
-    // Neurology Test
-    {
-      id: 201,
-      folderName: "Neurology Test",
-      title: "Brain Reflex Test",
-      organization: "NeuroMind Clinic",
-      status: "Completed",
-      startDate: "05/09/2025, 1:00 PM",
-      endDate: "05/09/2025, 3:00 PM",
-    },
-    {
-      id: 202,
-      folderName: "Neurology Test",
-      title: "Neuro Cognitive Skills",
-      organization: "MindPlus Labs",
-      status: "Upcoming",
-      startDate: "12/09/2025, 2:00 PM",
-      endDate: "12/09/2025, 4:00 PM",
-    },
-    {
-      id: 203,
-      folderName: "Neurology Test",
-      title: "Brain Health Basics",
-      organization: "NeuroLife",
-      status: "Completed",
-      startDate: "20/09/2025, 10:00 AM",
-      endDate: "20/09/2025, 11:00 AM",
-    },
-
-    // Orthopedics Test
-    {
-      id: 301,
-      folderName: "Orthopedics Test",
-      title: "Bone Strength Check",
-      organization: "OrthoPlus",
-      status: "Completed",
-      startDate: "01/08/2025, 9:00 AM",
-      endDate: "01/08/2025, 10:00 AM",
-    },
-    {
-      id: 302,
-      folderName: "Orthopedics Test",
-      title: "Joint Flexibility Test",
-      organization: "FlexiCare",
-      status: "Upcoming",
-      startDate: "08/08/2025, 11:00 AM",
-      endDate: "08/08/2025, 12:00 PM",
-    },
-    {
-      id: 303,
-      folderName: "Orthopedics Test",
-      title: "Posture Analysis",
-      organization: "SpineCare",
-      status: "Completed",
-      startDate: "15/08/2025, 2:00 PM",
-      endDate: "15/08/2025, 3:00 PM",
-    },
-  ];
-
-  // Filter tests for the selected folder
-  const tests = allTests.filter((t) => t.folderName === folderName);
+  const handleDeleteTest = (id) =>
+    setExtraTests((prev) => prev.filter((t) => t.id !== id));
 
   return (
-    <Box padding={3}>
-     <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
-             <Breadcrumbs />
-             <Typography variant="h6" fontWeight="bold">
-               Tests
-             </Typography>
-             <Button
-               variant="outlined"
-               color="primary"
-               startIcon={<AddIcon />}
-               sx={{ borderRadius: '50px', '&:hover': { backgroundColor: '#e3f2ff' } }}
-               onClick={handleMenuOpen}
-             >
-               Create
-             </Button>
-             <Menu anchorEl={anchorEl} open={Boolean(anchorEl)} onClose={handleMenuClose}>
-               <MenuItem onClick={() => handleOptionClick("folder")}>Add Folder</MenuItem>
-               <MenuItem onClick={() => handleOptionClick("test")}>Add Test</MenuItem>
-             </Menu>
-           </Box>
+    <Box className="p-6 bg-gray-50 min-h-screen">
+      <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
+        <Breadcrumbs />
+        <Typography variant="h6" fontWeight="bold">Tests</Typography>
+        <Button
+          variant="outlined"
+          color="primary"
+          startIcon={<AddIcon />}
+          sx={{ borderRadius: "50px", "&:hover": { backgroundColor: "#e3f2ff" } }}
+          onClick={handleMenuOpen}
+        >
+          Create
+        </Button>
+        <Menu anchorEl={anchorEl} open={Boolean(anchorEl)} onClose={handleMenuClose}>
+          <MenuItem onClick={() => handleOptionClick("folder")}>Add Folder</MenuItem>
+          <MenuItem onClick={() => handleOptionClick("test")}>Add Test</MenuItem>
+        </Menu>
+      </Box>
 
+      {/* Test List */}
       {tests.map((test) => (
-        <Card
+        <Box
           key={test.id}
           sx={{
-            backgroundColor: "#e9f6e9",
-            borderRadius: 2,
-            boxShadow: "none",
-            mb: 2,
-            px: 2,
-            py: 1,
+            backgroundColor: "#e9f5e9",
+            borderRadius: 1,
+            p: 1.5,
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            mb: 1,
           }}
         >
-          <CardContent
-            sx={{
-              display: "flex",
-              flexDirection: "column",
-              p: "8px !important",
-            }}
-          >
-            <Box
-              sx={{
-                display: "flex",
-                justifyContent: "space-between",
-                alignItems: "center",
-                flexWrap: "wrap",
-              }}
+          <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+            <Typography
+              sx={{ fontWeight: "bold", cursor: "pointer" }}
+              onClick={() =>
+                navigate("/add-questions", {
+                  state: { testName: test.title, instructions: test.instructions },
+                })
+              }
             >
-              <Typography variant="subtitle1" sx={{ fontWeight: "bold" }}>
-                {test.title} - {test.organization}
-              </Typography>
-
-              <Typography variant="body2" sx={{ color: "text.secondary" }}>
-                {test.startDate} - {test.endDate}
-              </Typography>
-            </Box>
-
-            <Box
-              sx={{
-                display: "flex",
-                alignItems: "center",
-                gap: 1,
-                mb: 1,
-                mt: 1,
-              }}
-            >
-              <Chip
-                label={test.status}
-                size="small"
+              {test.title}
+            </Typography>
+            {test.status === "Alloted" && (
+              <Box
+                component="span"
                 sx={{
-                  backgroundColor: "#ffeb3b",
-                  color: "#000",
-                  fontWeight: 500,
+                  background: "#d4a5d4",
+                  px: 1,
+                  py: 0.3,
+                  borderRadius: 1,
+                  fontSize: "0.8rem",
                 }}
-              />
-            </Box>
+              >
+                Alloted
+              </Box>
+            )}
+          </Box>
 
-            <Box sx={{ mt: 1, display: "flex", gap: 2 }}>
-              <Button
-                variant="text"
-                size="small"
-                sx={{ p: 0, textTransform: "none", color: "primary.main" }}
-                onClick={() => navigate('/add-questions',{state:{testName:test.title}})}
-              >
-                Add Questions
-              </Button>
-              <Button
-                variant="text"
-                size="small"
-                sx={{ p: 0, textTransform: "none", color: "error.main" }}
-                onClick={() => onDelete?.(test)}
-              >
-                Delete Test
-              </Button>
-            </Box>
-          </CardContent>
-        </Card>
+          <Box sx={{ display: "flex", gap: 1 }}>
+            <Button size="small" sx={{ color: "green" }} onClick={() => setOpenAllotModal(true)}>
+              Allot Test
+            </Button>
+            <Button size="small" sx={{ color: "green" }} onClick={() => handleEditTest(test)}>
+              Edit
+            </Button>
+            <Button size="small" sx={{ color: "green" }} onClick={() => handleDeleteTest(test.id)}>
+              Delete
+            </Button>
+          </Box>
+        </Box>
       ))}
-        {/* Modal */}
-            <Dialog open={openModal} onClose={() => setOpenModal(false)}>
-              <DialogTitle>
-                {isEditing
-                  ? "Edit Folder"
-                  : modalType === "folder"
-                  ? "Add Folder"
-                  : "Add Test"}
-              </DialogTitle>
-              <DialogContent>
-                <TextField
-                  autoFocus
-                  margin="dense"
-                  label={modalType === "folder" ? "Folder Name" : "Test Name"}
-                  fullWidth
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                />
-              </DialogContent>
-              <DialogActions>
-                <Button onClick={() => setOpenModal(false)}>Cancel</Button>
-                <Button
-                  onClick={handleSave}
-                  variant="contained"
-                  disabled={!name.trim()}
-                >
-                  Save
-                </Button>
-              </DialogActions>
-            </Dialog>
+
+      {/* Create / Edit Modal */}
+      <Dialog open={openModal} onClose={() => setOpenModal(false)} maxWidth="sm" fullWidth>
+        <DialogTitle>
+          {isEditing
+            ? modalType === "folder"
+              ? "Edit Folder"
+              : "Edit Test"
+            : modalType === "folder"
+            ? "Add Folder"
+            : "Add Test"}
+        </DialogTitle>
+        <DialogContent>
+          <TextField
+            autoFocus
+            margin="dense"
+            label={modalType === "folder" ? "Folder Name" : "Test Name"}
+            fullWidth
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+          />
+          {modalType === "test" && (
+            <TextField
+              margin="dense"
+              label="Test Instructions"
+              fullWidth
+              multiline
+              rows={8}
+              value={instructions}
+              onChange={(e) => setInstructions(e.target.value)}
+              sx={{ mt: 2 }}
+            />
+          )}
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setOpenModal(false)}>Cancel</Button>
+          <Button onClick={handleSave} variant="contained" disabled={!name.trim()}>
+            Save
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Allot Modal */}
+      <AllotTest
+        open={openAllotModal}
+        onClose={() => setOpenAllotModal(false)}
+        onSubmit={(data) => {
+          console.log("Allot Test Data:", data);
+        }}
+      />
     </Box>
   );
 };

@@ -4,36 +4,53 @@ import AddIcon from '@mui/icons-material/Add';
 import Card from '../components/GroupCards';
 import CreateGroupModal from '../components/CreateGroupModal';
 import Breadcrumbs from '../components/BreadCrumb';
-import groupData from '../common/data/groups.json';
 import { useNavigate } from 'react-router-dom';
+import { addGroup, getGroups, editGroup } from '../common/api';
 
 const Users = () => {
   const [openGroupModal, setOpenGroupModal] = useState(false);
   const [groups, setGroups] = useState([]);
+  const [update, setUpdate] = useState(false);
   const [editingGroup, setEditingGroup] = useState(null);
   const navigate = useNavigate();
 
-  useEffect(() => {
-    const initializedGroups = groupData.groups.map((group, i) => ({
-      ...group,
-      count: group.count || 0,
-      id: group.id || i + 1,
-    }));
-    setGroups(initializedGroups);
-  }, []);
+  const handleUpdate = () => setUpdate(!update);
 
-  const handleCreateGroup = (newGroup) => {
+  // Fetch groups from API
+  const getGroupdata = async () => {
+    try {
+      const res = await getGroups();
+      if (!res.data.error) setGroups(res.data.groups);
+    } catch (err) {
+      console.error("Failed to fetch groups:", err);
+    }
+  };
+
+  useEffect(() => {
+    getGroupdata();
+  }, [update]);
+
+  const handleCreateGroup = async (newGroup) => {
     if (editingGroup) {
-      // Update existing group
-      setGroups(groups.map(g =>
-        g.id === editingGroup.id
-          ? { ...g, title: newGroup.title, count: newGroup.count || g.count }
-          : g
-      ));
+      // Edit group: only send id and new title
+      try {
+        const data = { id: editingGroup.id, title: newGroup.title };
+        await editGroup(data);
+        handleUpdate();
+      } catch (err) {
+        console.error("Failed to edit group:", err);
+      }
     } else {
       // Create new group
-      setGroups([...groups, { id: groups.length + 1, title: newGroup.title, count: 0 }]);
+      try {
+        const data = { title: newGroup.title };
+        await addGroup(data);
+        handleUpdate();
+      } catch (err) {
+        console.error("Failed to add group:", err);
+      }
     }
+
     setEditingGroup(null);
     setOpenGroupModal(false);
   };
@@ -43,8 +60,8 @@ const Users = () => {
     setOpenGroupModal(true);
   };
 
-  const handleViewGroup = (title) => {
-    navigate(`/users`, { state: { title } });
+  const handleViewGroup = (title, id) => {
+    navigate(`/users`, { state: { title, id } });
   };
 
   const handleDeleteGroup = (id) => {
@@ -63,7 +80,7 @@ const Users = () => {
             setEditingGroup(null);
             setOpenGroupModal(true);
           }}
-           sx={{ borderRadius: '50px', '&:hover': { backgroundColor: '#e3f2ff' } }}
+          sx={{ borderRadius: '50px', '&:hover': { backgroundColor: '#e3f2ff' } }}
         >
           Create Group
         </Button>
@@ -74,8 +91,8 @@ const Users = () => {
           <Card
             key={group.id}
             title={group.title}
-            count={group.count}
-            onView={() => handleViewGroup(group.title)}
+            count={group.user_count}
+            onView={() => handleViewGroup(group.title, group.id)}
             onEdit={() => handleEditGroup(group)}
             onDelete={() => handleDeleteGroup(group.id)}
           />
@@ -90,6 +107,7 @@ const Users = () => {
         }}
         onSubmit={handleCreateGroup}
         initialData={editingGroup}
+        hideUserUpload={!!editingGroup} // hide upload users when editing
       />
     </div>
   );

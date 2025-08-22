@@ -11,37 +11,57 @@ import {
 import { Email, Lock } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
-
+import { encryptPassword } from "../common/crypt"; // 🔑 encryption util
 import Doctor from '../assets/doctor.jpg';
 import users from '../common/data/user.json'; // Make sure path is correct
 import AuthContext from '../common/AuthContext'; // ✅ Import context
-
+import { login } from '../common/api';
 const Login = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const navigate = useNavigate();
   const auth = useContext(AuthContext); // ✅ Use context
 
-  const handleLogin = (e) => {
-    e.preventDefault();
-const user= users.find((u) => u.email === email && u.password === password);
-    
-    if (user) {
-      // ✅ Use signin from AuthContext
-      auth.signin(user, () => {
-        toast.success('👨‍⚕️ Welcome Admin', {
-          position: 'top-right',
-          autoClose: 2000,
-          style: { background: '#1565a0', color: 'white' },
-        });
-        navigate('/', { replace: true });
+const handleLogin = async (e) => {
+  e.preventDefault();
+
+  // 🔐 Encrypt the password entered by user
+  const encryptedPassword = encryptPassword(password);
+  console.log(encryptedPassword)
+  const data = {
+    email: email,
+    password: encryptedPassword,
+  };
+
+  try {
+    const res = await login(data);
+    const user = res.data;
+
+    if (user.error) {
+      // ❌ Show error from backend
+      toast.error(user.message || "Login failed", {
+        position: "top-right",
+        autoClose: 2000,
       });
     } else {
-      toast.error('Invalid credentials', {
-        position: 'top-right',
+      // ✅ Success login
+      auth.signin(user.admin, () => {
+        toast.success(user.message || "👨‍⚕️ Welcome Admin", {
+          position: "top-right",
+          autoClose: 2000,
+          style: { background: "#1565a0", color: "white" },
+        });
+        navigate("/", { replace: true });
       });
     }
-  };
+  } catch (err) {
+    console.error("Error while logging in", err);
+    toast.error("Something went wrong. Please try again.", {
+      position: "top-right",
+      autoClose: 2000,
+    });
+  }
+};
 
   return (
     <Box

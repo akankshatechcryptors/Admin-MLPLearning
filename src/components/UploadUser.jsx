@@ -20,17 +20,20 @@ const AddOrUploadUserModal = ({
   open,
   onClose,
   onSaveSingle,
+  groupId,
   onUploadBulk,
   initialData
 }) => {
   const isEditMode = Boolean(initialData);
   const [tab, setTab] = useState(0); // always 0 in edit mode
+  console.log(groupId)
   const [formData, setFormData] = useState({
-    name: '',
+    fullname: '',
     email: '',
     password: '',
     type: '',
     contact: '',
+    group_id: groupId ||''
   });
 
   useEffect(() => {
@@ -39,16 +42,16 @@ const AddOrUploadUserModal = ({
       console.log(initialData)
       setTab(0); // ensure single user form
     } else {
-      setFormData({ name: '', email: '', password: '', type: '', contact: '' });
+      setFormData({ fullname: '', email: '', password: '', type: '', contact: '',group_id:groupId||'' });
     }
-  }, [initialData]);
+  }, [initialData ,groupId]);
 
   const handleChange = (field, value) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
   const handleSingleSubmit = () => {
-    if (!formData.name || !formData.email || !formData.type || !formData.contact) {
+    if (!formData.fullname || !formData.email || !formData.type || !formData.contact) {
       alert('Please fill all required fields');
       return;
     }
@@ -65,7 +68,7 @@ const AddOrUploadUserModal = ({
       reader.onload = (evt) => {
         const data = new Uint8Array(evt.target.result);
         const workbook = XLSX.read(data, { type: 'array' });
-        const worksheet = workbook.Sheets[workbook.SheetNames[0]];
+        const worksheet = workbook.Sheets[workbook.Sheetfullnames[0]];
         const jsonData = XLSX.utils.sheet_to_json(worksheet);
         if (onUploadBulk) {
           onUploadBulk(jsonData);
@@ -102,9 +105,9 @@ const AddOrUploadUserModal = ({
         {(tab === 0 || isEditMode) && (
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, mt: 2 }}>
             <TextField
-              label="Full Name"
-              value={formData.name}
-              onChange={(e) => handleChange('name', e.target.value)}
+              label="Full fullname"
+              value={formData.fullname}
+              onChange={(e) => handleChange('fullname', e.target.value)}
               fullWidth
             />
             <TextField
@@ -114,15 +117,13 @@ const AddOrUploadUserModal = ({
               onChange={(e) => handleChange('email', e.target.value)}
               fullWidth
             />
-            {!isEditMode && (
-              <TextField
-                label="Password"
-                type="password"
-                value={formData.password}
-                onChange={(e) => handleChange('password', e.target.value)}
-                fullWidth
-              />
-            )}
+          <TextField
+  label="Password"
+  type="password"
+  value={formData.password}
+  onChange={(e) => handleChange('password', e.target.value)}
+  fullWidth
+/>
             <TextField
               select
               label="Type"
@@ -172,7 +173,7 @@ const AddOrUploadUserModal = ({
               <Typography variant="body2">
                 Need a template?{' '}
                 <a
-                  href="/assets/sample-users.xlsx"
+                  href="/sample-users.xlsx"
                   download
                   style={{ textDecoration: 'underline', color: '#1976d2' }}
                 >

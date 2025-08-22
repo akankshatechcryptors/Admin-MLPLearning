@@ -38,10 +38,11 @@ function App() {
   }, []);
 
   const signin = (newUser, callback) => {
-    if (newUser && newUser.name) {
+    //console.log(newUser)
+    if (newUser && newUser.fullname) {
       localStorage.setItem('user', JSON.stringify(newUser));
       setEmail(newUser.email);
-      setName(newUser.name);
+      setName(newUser.fullname);
       setIsLoggedIn(true);
       setUser(newUser.id);
       setToken(newUser.token);

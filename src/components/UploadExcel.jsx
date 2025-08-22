@@ -18,12 +18,11 @@ import DownloadIcon from "@mui/icons-material/Download";
 export default function UploadExcelModal({
   open,
   onClose,
-  sampleFile = "/assets/sample.xlsx",
+  sampleFile = "/sample-questions.xlsx",
   onUpload,
   sections = [] // Pass array of sections [{name: "Math"}, {name: "Science"}]
 }) {
   const [dragActive, setDragActive] = useState(false);
-  const [selectedSection, setSelectedSection] = useState("");
   const [selectedFile, setSelectedFile] = useState(null);
 
   const handleDragOver = (e) => {
@@ -48,10 +47,7 @@ export default function UploadExcelModal({
   };
 
   const handleUpload = () => {
-    if (!selectedSection) {
-      alert("Please select a section first.");
-      return;
-    }
+   
     if (!selectedFile) {
       alert("Please upload an Excel file.");
       return;
@@ -67,20 +63,7 @@ export default function UploadExcelModal({
       <DialogTitle>Upload Questions (Excel)</DialogTitle>
       <DialogContent>
         {/* Section Dropdown */}
-        <FormControl fullWidth margin="normal">
-          <InputLabel>Select Section</InputLabel>
-          <Select
-            value={selectedSection}
-            onChange={(e) => setSelectedSection(e.target.value)}
-          >
-            {sections.map((sec, index) => (
-              <MenuItem key={index} value={sec.name}>
-                {sec.name}
-              </MenuItem>
-            ))}
-          </Select>
-        </FormControl>
-
+       
         {/* Drag & Drop Upload */}
         <Box
           onClick={() => document.getElementById("excelInput").click()}
