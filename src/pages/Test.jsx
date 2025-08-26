@@ -1,81 +1,106 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import TestFoldersList from "../components/TestFolder";
 import Breadcrumbs from "../components/BreadCrumb";
-import { Box, Typography, Button } from "@mui/material";
+import {
+  Box,
+  Typography,
+  Button,
+  Menu,
+  MenuItem,
+  CircularProgress
+} from "@mui/material";
 import AllotTestModal from "../components/AllotTest";
-
-// Inside TestCards component state
+import {
+  getFolder,
+  addFolder,
+  editFolder,
+  addExam,
+  getExam,
+  moveFolder,
+  allotTest
+} from "../common/api";
 
 export default function TestPage() {
-  const [viewingTest, setViewingTest] = useState(null);
   const [currentFolder, setCurrentFolder] = useState(null);
-const [openAllotModal, setOpenAllotModal] = useState(false);
-  // Folders state
-  const [folders, setFolders] = useState([
-    { id: 1, name: "Cardiology Test" },
-    { id: 2, name: "Neurology Test" },
-    { id: 3, name: "Orthopedics Test" }
-  ]);
+  const [openAllotModal, setOpenAllotModal] = useState(false);
+  const [update, setUpdate] = useState(false);
+  const [folders, setFolders] = useState([]);
+  const [unassignedTests, setUnassignedTests] = useState([]);
+  const [loading,setLoading]=useState(false)
+  
+  // dropdown state
+  const [anchorEl, setAnchorEl] = useState(null);
+  const [selectedTest, setSelectedTest] = useState(null);
+  const handleUpdate = () => setUpdate(!update);
 
-  // Unassigned tests state
-  const [unassignedTests, setUnassignedTests] = useState([
-    { id: 1001, title: "First Test", status: "Alloted" },
-    { id: 1002, title: "General Knowledge 2", status: "Alloted" },
-    { id: 1003, title: "test-11/7", status: "Not Allotted" },
-    { id: 1004, title: "test-11/8", status: "Not Allotted" }
-  ]);
-
-  // Tests inside folders
-  const [testsData, setTestsData] = useState({
-    1: [
-      {
-        id: 101,
-        title: "General Knowledge",
-        organization: "TechCryptors",
-        status: "Attempted",
-        startDate: "07/09/2025, 12:00 AM",
-        endDate: "07/09/2025, 11:59 PM"
-      }
-    ],
-    2: [
-      {
-        id: 201,
-        title: "Brain Reflex Test",
-        organization: "NeuroMind Clinic",
-        status: "Attempted",
-        startDate: "05/09/2025, 1:00 PM",
-        endDate: "05/09/2025, 3:00 PM"
-      }
-    ],
-    3: []
-  });
-
-  // ====== Folder Handlers ======
-  const handleAddFolder = (name) => {
-    const newFolder = { id: Date.now(), name };
-    setFolders((prev) => [...prev, newFolder]);
-    setTestsData((prev) => ({ ...prev, [newFolder.id]: [] }));
+  const getFolders = async () => {
+    setLoading(true)
+    try {
+      const res = await getFolder();
+      setFolders(res.data.folders);
+      setLoading(false)
+    } catch (error) {
+      console.log(error);
+    }
   };
 
-  const handleEditFolder = (id, newName) => {
-    setFolders((prev) =>
-      prev.map((f) => (f.id === id ? { ...f, name: newName } : f))
-    );
+  const getExams = async () => {
+    setLoading(true)
+    const data = { folder_id: "", group_id: "" };
+    try {
+      const res = await getExam(data);
+      console.log(res)
+      setUnassignedTests(res.data.groups);
+      setLoading(false)
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
+  useEffect(() => {
+    getFolders();
+    getExams();
+  }, [update]);
+
+  const handleAddFolder = async (name) => {
+    try {
+      await addFolder({ title: name });
+      handleUpdate();
+    } catch (error) {
+      console.log(error);
+    }
+  };
+ const handleAllotTest = async (data) => {
+  console.log(data)
+    try {
+     const res= await allotTest(data);
+     console.log(res,'test  is alloted')
+      handleUpdate();
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
+  const handleEditFolder = async (id, newName) => {
+    try {
+      await editFolder({ folder_id: id, title: newName });
+      handleUpdate();
+    } catch (error) {
+      console.log(error);
+    }
   };
 
   const handleDeleteFolder = (folder) => {
     setFolders((prev) => prev.filter((f) => f.id !== folder.id));
-    setTestsData((prev) => {
-      const copy = { ...prev };
-      delete copy[folder.id];
-      return copy;
-    });
   };
 
-  // ====== Test Handlers ======
-  const handleAddTest = (name) => {
-    const newTest = { id: Date.now(), title: name, status: "Not Allotted" };
-    setUnassignedTests((prev) => [...prev, newTest]);
+  const handleAddTest = async (name, desc) => {
+    try {
+      await addExam({ title: name, description: desc });
+      handleUpdate();
+    } catch (error) {
+      console.log(error);
+    }
   };
 
   const handleEditTest = (id, newTitle) => {
@@ -88,23 +113,51 @@ const [openAllotModal, setOpenAllotModal] = useState(false);
     setUnassignedTests((prev) => prev.filter((t) => t.id !== id));
   };
 
-  const handleMoveToFolder = (testId, folderId) => {
-    const test = unassignedTests.find((t) => t.id === testId);
-    if (!test) return;
+  const handleMoveToFolder = async (testId, folderId) => {
+    try {
+      await moveFolder({ exam_id: testId, folder_id: folderId });
+      handleUpdate();
+    } catch (error) {
+      console.log(error);
+    }
+  };
 
-    // Remove from unassigned
-    setUnassignedTests((prev) => prev.filter((t) => t.id !== testId));
+  // dropdown handlers
+  const handleOpenMenu = (event, test) => {
+    setAnchorEl(event.currentTarget);
+    setSelectedTest(test);
+  };
 
-    // Add to folder
-    setTestsData((prev) => ({
-      ...prev,
-      [folderId]: [...(prev[folderId] || []), test]
-    }));
+  const handleCloseMenu = () => {
+    setAnchorEl(null);
+    setSelectedTest(null);
+  };
+
+  const handleMoveTest = async (folderId) => {
+    if (!selectedTest) return;
+    await handleMoveToFolder(selectedTest.id, folderId);
+    handleCloseMenu();
   };
 
   return (
-    <Box className="p-6 bg-gray-50 min-h-screen" >
-      {/* Folders List */}
+    <Box className="p-6 bg-gray-50 min-h-screen">
+     {loading? (
+      <Box
+        sx={{
+          display: "flex",
+          flexDirection: "column",
+          justifyContent: "center",
+          alignItems: "center",
+          height: "80vh",
+          gap: 2,
+        }}
+      >
+        <CircularProgress size={60} thickness={4} sx={{ color: "blue" }} />
+        <Typography variant="h6" sx={{ mt: 2, color: "gray" }}>
+          Loading Tests...
+        </Typography>
+      </Box>
+    ):(<>
       <TestFoldersList
         folders={folders}
         onSelectFolder={(folder) => setCurrentFolder(folder)}
@@ -114,7 +167,6 @@ const [openAllotModal, setOpenAllotModal] = useState(false);
         onAddTest={handleAddTest}
       />
 
-      {/* Unassigned Tests */}
       {!currentFolder && (
         <>
           <Typography sx={{ fontSize: "1.25rem", fontWeight: "bold", mb: 2 }}>
@@ -131,15 +183,14 @@ const [openAllotModal, setOpenAllotModal] = useState(false);
                   display: "flex",
                   justifyContent: "space-between",
                   alignItems: "center",
-                  mb: 1
+                  mb: 1,
                 }}
               >
-                {/* Test Title + Status */}
                 <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
                   <Typography sx={{ fontWeight: "bold" }}>
                     {test.title}
                   </Typography>
-                  {test.status === "Alloted" && (
+                  {test.allocated_group_count !==0 && (
                     <Box
                       component="span"
                       sx={{
@@ -147,7 +198,7 @@ const [openAllotModal, setOpenAllotModal] = useState(false);
                         px: 1,
                         py: 0.3,
                         borderRadius: 1,
-                        fontSize: "0.8rem"
+                        fontSize: "0.8rem",
                       }}
                     >
                       Alloted
@@ -155,15 +206,21 @@ const [openAllotModal, setOpenAllotModal] = useState(false);
                   )}
                 </Box>
 
-                {/* Action Buttons */}
                 <Box sx={{ display: "flex", gap: 1 }}>
-                  <Button
+                  {
+                    test.allocated_group_count ===0 &&(<>
+                    <Button
                     size="small"
                     sx={{ color: "green" }}
-                     onClick={() => setOpenAllotModal(true)}
+                     onClick={() => {
+    setSelectedTest(test.id); // store the test object
+    setOpenAllotModal(true);
+  }}
                   >
                     Allot Test
                   </Button>
+                    </>)
+                  }
                   <Button
                     size="small"
                     sx={{ color: "green" }}
@@ -179,9 +236,7 @@ const [openAllotModal, setOpenAllotModal] = useState(false);
                   <Button
                     size="small"
                     sx={{ color: "green" }}
-                    onClick={() =>
-                      handleMoveToFolder(test.id, folders[0]?.id || null)
-                    }
+                    onClick={(e) => handleOpenMenu(e, test)}
                   >
                     Move to Folder
                   </Button>
@@ -198,14 +253,23 @@ const [openAllotModal, setOpenAllotModal] = useState(false);
           </Box>
         </>
       )}
+
+      {/* Dropdown menu */}
+      <Menu anchorEl={anchorEl} open={Boolean(anchorEl)} onClose={handleCloseMenu}>
+        {folders.map((folder) => (
+          <MenuItem key={folder.id} onClick={() => handleMoveTest(folder.id)}>
+            {folder.title}
+          </MenuItem>
+        ))}
+      </Menu>
+     </>)}
+
       <AllotTestModal
-  open={openAllotModal}
-  onClose={() => setOpenAllotModal(false)}
-  onSubmit={(data) => {
-    console.log("Allot Test Data:", data);
-    // call your API here
-  }}
-/>
+        open={openAllotModal}
+        onClose={() => setOpenAllotModal(false)}
+        onSubmit={handleAllotTest}
+        selectedTest={selectedTest}
+      />
     </Box>
   );
 }

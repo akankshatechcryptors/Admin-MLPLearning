@@ -20,7 +20,7 @@ export default function UploadExcelModal({
   onClose,
   sampleFile = "/sample-questions.xlsx",
   onUpload,
-  sections = [] // Pass array of sections [{name: "Math"}, {name: "Science"}]
+  sectionId
 }) {
   const [dragActive, setDragActive] = useState(false);
   const [selectedFile, setSelectedFile] = useState(null);
@@ -52,8 +52,7 @@ export default function UploadExcelModal({
       alert("Please upload an Excel file.");
       return;
     }
-    onUpload && onUpload(selectedSection, selectedFile);
-    setSelectedSection("");
+    onUpload(selectedFile);
     setSelectedFile(null);
     onClose();
   };

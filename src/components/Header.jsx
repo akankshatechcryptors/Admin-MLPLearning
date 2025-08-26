@@ -18,7 +18,10 @@ import { AccountCircle, Visibility, VisibilityOff } from '@mui/icons-material';
 import SearchIcon from '@mui/icons-material/Search';
 import AuthContext from '../common/AuthContext';
 import { useNavigate } from 'react-router-dom';
+import { encryptPassword } from "../common/crypt";
+import{ changePassword} from '../common/api'
 import Logo from '../assets/logo.png'
+import {toast} from 'react-toastify'
 const Header = () => {
   const [anchorEl, setAnchorEl] = useState(null);
   const [passwordModalOpen, setPasswordModalOpen] = useState(false);
@@ -35,8 +38,8 @@ const Header = () => {
 
   // Get username from localStorage
   const user = JSON.parse(localStorage.getItem('user'));
-  const username = user?.name || 'User';
-
+  const username = user?.fullname || 'User';
+  const id=user?.id||''
   const handleLogout = () => {
     auth.signout(() => {
       setAnchorEl(null);
@@ -44,19 +47,26 @@ const Header = () => {
     });
   };
 
-  const handleChangePassword = () => {
+  const handleChangePassword = async() => {
     if (!newPassword || !confirmPassword) {
-      alert('Please fill both fields');
+      toast.error('Please fill both fields');
       return;
     }
     if (newPassword !== confirmPassword) {
-      alert('Passwords do not match');
+      toast.error('Passwords do not match');
       return;
     }
-
-    // API call for password change can go here
-    console.log('Password changed to:', newPassword);
-
+    const enc=encryptPassword(newPassword)
+    try {
+      const data={
+        id:id,  
+        password:enc
+      }
+      const res=await changePassword(data)
+      console.log(res)
+    } catch (error) {
+      
+    }
     setPasswordModalOpen(false);
     setNewPassword('');
     setConfirmPassword('');

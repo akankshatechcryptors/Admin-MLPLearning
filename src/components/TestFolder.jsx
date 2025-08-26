@@ -33,6 +33,7 @@ export default function TestFoldersList({
   const [anchorEl, setAnchorEl] = useState(null);
   const [openModal, setOpenModal] = useState(false);
   const [modalType, setModalType] = useState(""); 
+  const [desc ,setDesc]=useState("")
   const [isEditing, setIsEditing] = useState(false);
   const [name, setName] = useState("");
   const [editId, setEditId] = useState(null);
@@ -54,7 +55,7 @@ export default function TestFoldersList({
     setModalType("folder");
     setIsEditing(true);
     setEditId(folder.id);
-    setName(folder.name);
+    setName(folder.title);
     setOpenModal(true);
   };
 
@@ -64,15 +65,15 @@ export default function TestFoldersList({
     } else if (modalType === "folder") {
       onAddFolder(name);
     } else if (modalType === "test") {
-      onAddTest(name);
+      onAddTest(name,desc);
     }
     setOpenModal(false);
   };
 
   const handleFolderClick = (folder) => {
     if (onSelectFolder) onSelectFolder(folder);
-   const folderSlug = folder.name.replace(/\s+/g, "-");
-    navigate(`/tests/${folderSlug}`,{state:{folder:folder}});
+   const folderSlug = folder.title.replace(/\s+/g, "-");
+    navigate(`/tests/${folderSlug}`,{state:{folder:folder,id:folder.id}});
   };
 
   return (
@@ -167,7 +168,7 @@ export default function TestFoldersList({
                   maxWidth: "90%",
                 }}
               >
-                {folder.name}
+                {folder.title}
               </Typography>
             </CardContent>
 
@@ -208,8 +209,18 @@ export default function TestFoldersList({
             label={modalType === "folder" ? "Folder Name" : "Test Name"}
             fullWidth
             value={name}
-            onChange={(e) => setName(e.target.value)}
+            onChange={(e) => setName(e.target.value.replace(/"/g, ""))}
           />
+          {modalType==='test' &&(<>
+          <TextField
+            autoFocus
+            margin="dense"
+            label="Instructions"
+            fullWidth
+            value={desc}
+            onChange={(e) => setDesc(e.target.value.replace(/"/g, ""))}
+          />
+          </>)}
         </DialogContent>
         <DialogActions>
           <Button onClick={() => setOpenModal(false)}>Cancel</Button>

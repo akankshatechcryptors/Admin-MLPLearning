@@ -1,5 +1,5 @@
 // components/AllotTestModal.jsx
-import React, { useState } from "react";
+import React, { useState,useEffect } from "react";
 import {
   Dialog,
   DialogTitle,
@@ -14,17 +14,35 @@ import {
   Checkbox,
   ListItemText,
 } from "@mui/material";
-import Groups from "../common/data/groups.json";
-
-const AllotTestModal = ({ open, onClose, onSubmit }) => {
+import { getGroups } from "../common/api";
+const AllotTestModal = ({ open, onClose, onSubmit ,selectedTest}) => {
+  const [Groups,setGroups]=useState([])
+  
   const [formData, setFormData] = useState({
-    groups: [], // store selected group titles
-    attempts: "01",
-    testType: "Online",
-    shuffleType: "Shuffle Both",
-    startDate: "",
-    endDate: "",
+    exam_id:selectedTest||'',
+    group_ids: [], // store selected group titles
+    start_date: "",
+    end_date: "",
   });
+  useEffect(() => {
+  if (selectedTest) {
+    setFormData((prev) => ({ ...prev, exam_id: selectedTest }));
+  }
+}, [selectedTest]);
+   // Fetch groups from API
+    const getGroupdata = async () => {
+      try {
+        const res = await getGroups();
+        console.log(res)
+        if (!res.data.error) setGroups(res.data.groups);
+      } catch (err) {
+        console.error("Failed to fetch groups:", err);
+      }
+    };
+  
+    useEffect(() => {
+      getGroupdata();
+    }, []);
 
   const handleChange = (field, value) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
@@ -33,6 +51,12 @@ const AllotTestModal = ({ open, onClose, onSubmit }) => {
   const handleSave = () => {
     onSubmit(formData);
     onClose();
+    setFormData({
+      exam_id:'',
+    group_ids: [], // store selected group titles
+    start_date: "",
+    end_date: "",
+    })
   };
 
   return (
@@ -42,19 +66,22 @@ const AllotTestModal = ({ open, onClose, onSubmit }) => {
         {/* Groups */}
         <FormControl fullWidth margin="dense">
           <InputLabel>Groups*</InputLabel>
-          <Select
-            multiple
-            value={formData.groups}
-            onChange={(e) => handleChange("groups", e.target.value)}
-            renderValue={(selected) => selected.join(", ")}
-          >
-            {Groups.groups.map((group) => (
-              <MenuItem key={group.id} value={group.title}>
-                <Checkbox checked={formData.groups.includes(group.title)} />
-                <ListItemText primary={`${group.title} (${group.count})`} />
-              </MenuItem>
-            ))}
-          </Select>
+         <Select
+  multiple
+  value={formData.group_ids}
+  onChange={(e) => handleChange("group_ids", e.target.value)}
+  renderValue={(selected) =>
+    Groups.filter((g) => selected.includes(g.id)).map((g) => g.title).join(", ")
+  }
+>
+  {Groups.map((group) => (
+    <MenuItem key={group.id} value={group.id}>
+      <Checkbox checked={formData.group_ids.includes(group.id)} />
+      <ListItemText primary={`${group.title} (${group.user_count})`} />
+    </MenuItem>
+  ))}
+</Select>
+
         </FormControl>
 
 
@@ -66,8 +93,8 @@ const AllotTestModal = ({ open, onClose, onSubmit }) => {
           fullWidth
           margin="dense"
           InputLabelProps={{ shrink: true }}
-          value={formData.startDate}
-          onChange={(e) => handleChange("startDate", e.target.value)}
+          value={formData.start_date}
+          onChange={(e) => handleChange("start_date", e.target.value)}
         />
         <TextField
           label="End date of the test*"
@@ -75,8 +102,8 @@ const AllotTestModal = ({ open, onClose, onSubmit }) => {
           fullWidth
           margin="dense"
           InputLabelProps={{ shrink: true }}
-          value={formData.endDate}
-          onChange={(e) => handleChange("endDate", e.target.value)}
+          value={formData.end_date}
+          onChange={(e) => handleChange("end_date", e.target.value)}
         />
       </DialogContent>
       <DialogActions>

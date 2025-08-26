@@ -15,11 +15,17 @@ import {
 import AddIcon from "@mui/icons-material/Add";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
-import admin from "../common/data/user.json";
 import Breadcrumbs from "../components/BreadCrumb";
 import ConfirmDeleteDialog from "../common/ConfirmDelete";
 import { toast } from "react-toastify";
-import { encryptPassword } from "../common/crypt"; // 🔑 encryption util
+import { encryptPassword } from "../common/crypt"; 
+import { getAdmins, addAdmin, editAdmin } from "../common/api";
+
+const roleMap = {
+  superadmin: "Super Admin",
+  admin: "Content Admin",
+  observer: "Observer",
+};
 
 const AdminsPage = () => {
   const [admins, setAdmins] = useState([]);
@@ -29,104 +35,108 @@ const AdminsPage = () => {
   const [editId, setEditId] = useState(null);
   const [deleteId, setDeleteId] = useState(null);
   const [confirmOpen, setConfirmOpen] = useState(false);
+  const [update, setUpdate] = useState(false);
+
+  const handleUpdate = () => setUpdate(!update);
 
   const [newAdmin, setNewAdmin] = useState({
-    name: "",
+    fullname: "",
     email: "",
-    contact: "",
     password: "",
-    type: "Observer", // default
+    type: "observer",
   });
 
-  useEffect(() => {
-    setAdmins(admin);
-    setLoading(false);
-  }, []);
-
-  const loggedInUser = useMemo(() => {
+  // Fetch admins from backend
+  const getData = async () => {
     try {
-      return JSON.parse(localStorage.getItem("user"));
-    } catch {
-      return null;
+      setLoading(true);
+      const res = await getAdmins();
+      const users = res.data.users.map((u, index) => ({
+        ...u,
+        srNo: index + 1,
+        type: roleMap[u.type] || u.type,
+      }));
+      setAdmins(users);
+    } catch (err) {
+      console.error(err);
+      toast.error("Failed to fetch admins");
+    } finally {
+      setLoading(false);
     }
-  }, []);
+  };
 
-  const filteredAdmins = useMemo(
-    () => admins.filter((a) => a.id !== loggedInUser?.id),
-    [admins, loggedInUser]
-  );
+  useEffect(() => {
+    getData();
+  }, [update]);
 
   const resetForm = useCallback(() => {
     setNewAdmin({
-      name: "",
+      fullname: "",
       email: "",
-      contact: "",
       password: "",
-      type: "Observer",
+      type: "observer",
     });
     setEditMode(false);
     setEditId(null);
   }, []);
 
-  const handleSaveAdmin = useCallback(() => {
-    const { name, email, contact, password, type } = newAdmin;
-    if (!name || !email || !contact || !type) {
-      alert("Please fill all fields");
+  const sanitizeInput = (value) => {
+    if (!value) return "";
+    let trimmed = value.trim(); // remove leading/trailing spaces
+    trimmed = trimmed.replace(/"/g, ""); // remove double quotes
+    return trimmed;
+  };
+
+  const handleSaveAdmin = useCallback(async () => {
+    const fullname = sanitizeInput(newAdmin.fullname);
+    const email = sanitizeInput(newAdmin.email);
+    const password = sanitizeInput(newAdmin.password);
+    const type = newAdmin.type;
+
+    if (!fullname || !email || !type) {
+      alert("Please fill all required fields");
       return;
     }
 
-    // 🔐 Encrypt password if provided
     const encryptedPassword = password ? encryptPassword(password) : null;
 
-    if (editMode) {
-      setAdmins((prev) =>
-        prev.map((a) =>
-          a.id === editId
-            ? {
-                ...a,
-                name,
-                email,
-                contact,
-                type,
-                ...(encryptedPassword ? { password: encryptedPassword } : {}),
-              }
-            : a
-        )
-      );
-      toast.success("Admin updated successfully");
-    } else {
-      if (!encryptedPassword) {
-        alert("Password is required for new admins");
-        return;
-      }
-      const nextId =
-        Math.max(0, ...admins.map((a) => Number(a.id) || 0)) + 1;
-      setAdmins((prev) => [
-        ...prev,
-        {
-          id: nextId,
-          name,
-          email,
-          contact,
-          type,
-          password: encryptedPassword, // ✅ encrypted
-          token: `token${nextId}`,
-        },
-      ]);
-      toast.success("Admin added successfully");
-    }
+    try {
+      if (editMode) {
+        // Update via API
+        const res =await editAdmin({id:editId,fullname, email, type, password: encryptedPassword });
+        console.log(res)
+        if(!res.data.error){
+          toast.success("Admin updated successfully");
+        }
+        else{
+          toast.error(res.data.message)
+        }
 
-    resetForm();
-    setModalOpen(false);
-  }, [newAdmin, editMode, editId, admins, resetForm]);
+      } else {
+      
+        await addAdmin({ fullname, email, type, password: encryptedPassword });
+        toast.success("Admin added successfully");
+      }
+      handleUpdate();
+      setModalOpen(false);
+      resetForm();
+    } catch (err) {
+      console.error(err);
+      toast.error("Failed to save admin");
+    }
+  }, [newAdmin, editMode, editId, resetForm]);
 
   const handleEditAdmin = useCallback((adminData) => {
     setNewAdmin({
-      name: adminData.name,
+      fullname: adminData.fullname,
       email: adminData.email,
-      contact: adminData.contact,
-      password: "", // always blank when editing
-      type: adminData.type || "Observer",
+      password: "", // always blank on edit
+      type:
+        adminData.type === "Content Admin"
+          ? "admin"
+          : adminData.type === "Super Admin"
+          ? "superadmin"
+          : "observer",
     });
     setEditId(adminData.id);
     setEditMode(true);
@@ -150,9 +160,8 @@ const AdminsPage = () => {
         accessorKey: "srNo",
         header: "Sr. No.",
         size: 50,
-        Cell: ({ row }) => row.index + 1,
       },
-      { accessorKey: "name", header: "Name" },
+      { accessorKey: "fullname", header: "Name" },
       { accessorKey: "email", header: "Email" },
       { accessorKey: "type", header: "Role" },
       {
@@ -180,15 +189,11 @@ const AdminsPage = () => {
     [handleEditAdmin, requestDeleteAdmin]
   );
 
-  const table = useMantineReactTable({ columns, data: filteredAdmins });
+  const table = useMantineReactTable({ columns, data: admins, state: { isLoading: loading } });
 
   return (
     <Box className="p-6 bg-gray-50 min-h-screen">
-      <Group
-        position="apart"
-        className="mb-4"
-        style={{ alignItems: "center" }}
-      >
+      <Group position="apart" className="mb-4" style={{ alignItems: "center" }}>
         <Breadcrumbs />
         <Typography variant="h5" sx={{ fontWeight: 600 }}>
           Admins Management
@@ -197,10 +202,7 @@ const AdminsPage = () => {
           variant="outlined"
           color="primary"
           startIcon={<AddIcon />}
-          sx={{
-            borderRadius: "50px",
-            "&:hover": { backgroundColor: "#e3f2ff" },
-          }}
+          sx={{ borderRadius: "50px", "&:hover": { backgroundColor: "#e3f2ff" } }}
           onClick={() => {
             resetForm();
             setModalOpen(true);
@@ -212,7 +214,6 @@ const AdminsPage = () => {
 
       <MantineReactTable table={table} />
 
-      {/* Modal for Add/Edit */}
       <Modal
         opened={modalOpen}
         onClose={() => {
@@ -225,39 +226,32 @@ const AdminsPage = () => {
         <Box sx={{ display: "flex", flexDirection: "column", gap: 2, mt: 2 }}>
           <TextField
             label="Name"
-            value={newAdmin.name}
+            value={newAdmin.fullname}
             onChange={(e) =>
-              setNewAdmin((p) => ({ ...p, name: e.target.value }))
+              setNewAdmin((p) => ({ ...p, fullname: e.target.value }))
             }
           />
           <TextField
             label="Email"
             value={newAdmin.email}
-            onChange={(e) =>
-              setNewAdmin((p) => ({ ...p, email: e.target.value }))
-            }
+            onChange={(e) => setNewAdmin((p) => ({ ...p, email: e.target.value }))}
           />
           <TextField
             label="Password"
             type="password"
             value={newAdmin.password}
-            onChange={(e) =>
-              setNewAdmin((p) => ({ ...p, password: e.target.value }))
-            }
+            onChange={(e) => setNewAdmin((p) => ({ ...p, password: e.target.value }))}
           />
-
           <FormControl fullWidth>
             <InputLabel>Admin Type</InputLabel>
             <Select
               value={newAdmin.type}
               label="Admin Type"
-              onChange={(e) =>
-                setNewAdmin((p) => ({ ...p, type: e.target.value }))
-              }
+              onChange={(e) => setNewAdmin((p) => ({ ...p, type: e.target.value }))}
             >
-              <MenuItem value="Superadmin">Super Admin</MenuItem>
-              <MenuItem value="ContentAdmin">Content Admin</MenuItem>
-              <MenuItem value="Observer">Observer</MenuItem>
+              <MenuItem value="superadmin">Super Admin</MenuItem>
+              <MenuItem value="admin">Content Admin</MenuItem>
+              <MenuItem value="observer">Observer</MenuItem>
             </Select>
           </FormControl>
 
@@ -269,7 +263,6 @@ const AdminsPage = () => {
         </Box>
       </Modal>
 
-      {/* Reusable Confirmation Dialog */}
       <ConfirmDeleteDialog
         open={confirmOpen}
         onClose={() => setConfirmOpen(false)}

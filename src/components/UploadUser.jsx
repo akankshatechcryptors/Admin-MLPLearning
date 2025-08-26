@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Dialog,
   DialogTitle,
@@ -14,7 +14,6 @@ import {
 } from '@mui/material';
 import { useDropzone } from 'react-dropzone';
 import CloudUploadIcon from '@mui/icons-material/CloudUpload';
-import * as XLSX from 'xlsx';
 
 const AddOrUploadUserModal = ({
   open,
@@ -25,26 +24,24 @@ const AddOrUploadUserModal = ({
   initialData
 }) => {
   const isEditMode = Boolean(initialData);
-  const [tab, setTab] = useState(0); // always 0 in edit mode
-  console.log(groupId)
+  const [tab, setTab] = useState(0);
   const [formData, setFormData] = useState({
     fullname: '',
     email: '',
     password: '',
     type: '',
     contact: '',
-    group_id: groupId ||''
+    group_id: groupId || ''
   });
 
   useEffect(() => {
     if (initialData) {
       setFormData(initialData);
-      console.log(initialData)
-      setTab(0); // ensure single user form
+      setTab(0); // force single user form in edit mode
     } else {
-      setFormData({ fullname: '', email: '', password: '', type: '', contact: '',group_id:groupId||'' });
+      setFormData({ fullname: '', email: '', password: '', type: '', contact: '', group_id: groupId || '' });
     }
-  }, [initialData ,groupId]);
+  }, [initialData, groupId]);
 
   const handleChange = (field, value) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
@@ -55,29 +52,17 @@ const AddOrUploadUserModal = ({
       alert('Please fill all required fields');
       return;
     }
-    if (onSaveSingle) {
-      onSaveSingle(formData);
-    }
+    onSaveSingle?.(formData);
     onClose();
   };
 
-  const onDrop = useCallback((acceptedFiles) => {
+  const onDrop = (acceptedFiles) => {
     if (acceptedFiles.length > 0) {
-      const file = acceptedFiles[0];
-      const reader = new FileReader();
-      reader.onload = (evt) => {
-        const data = new Uint8Array(evt.target.result);
-        const workbook = XLSX.read(data, { type: 'array' });
-        const worksheet = workbook.Sheets[workbook.Sheetfullnames[0]];
-        const jsonData = XLSX.utils.sheet_to_json(worksheet);
-        if (onUploadBulk) {
-          onUploadBulk(jsonData);
-        }
-        onClose();
-      };
-      reader.readAsArrayBuffer(file);
+      // Pass the raw file(s) directly
+      onUploadBulk?.(acceptedFiles[0]);
+      onClose();
     }
-  }, [onClose, onUploadBulk]);
+  };
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
@@ -92,7 +77,6 @@ const AddOrUploadUserModal = ({
     <Dialog open={open} onClose={onClose} fullWidth maxWidth="sm">
       <DialogTitle>{isEditMode ? 'Edit User' : 'Add User(s)'}</DialogTitle>
 
-      {/* Tabs only if not editing */}
       {!isEditMode && (
         <Tabs value={tab} onChange={(e, newValue) => setTab(newValue)} centered>
           <Tab label="Single User" />
@@ -101,11 +85,10 @@ const AddOrUploadUserModal = ({
       )}
 
       <DialogContent>
-        {/* Always show single-user form in edit mode */}
         {(tab === 0 || isEditMode) && (
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, mt: 2 }}>
             <TextField
-              label="Full fullname"
+              label="Full Name"
               value={formData.fullname}
               onChange={(e) => handleChange('fullname', e.target.value)}
               fullWidth
@@ -117,13 +100,13 @@ const AddOrUploadUserModal = ({
               onChange={(e) => handleChange('email', e.target.value)}
               fullWidth
             />
-          <TextField
-  label="Password"
-  type="password"
-  value={formData.password}
-  onChange={(e) => handleChange('password', e.target.value)}
-  fullWidth
-/>
+            <TextField
+              label="Password"
+              type="password"
+              value={formData.password}
+              onChange={(e) => handleChange('password', e.target.value)}
+              fullWidth
+            />
             <TextField
               select
               label="Type"
@@ -145,7 +128,6 @@ const AddOrUploadUserModal = ({
           </Box>
         )}
 
-        {/* Bulk upload tab only when adding */}
         {!isEditMode && tab === 1 && (
           <Box
             {...getRootProps()}
@@ -172,11 +154,7 @@ const AddOrUploadUserModal = ({
             <Box mt={2}>
               <Typography variant="body2">
                 Need a template?{' '}
-                <a
-                  href="/sample-users.xlsx"
-                  download
-                  style={{ textDecoration: 'underline', color: '#1976d2' }}
-                >
+                <a href="/sample-users.xlsx" download style={{ textDecoration: 'underline', color: '#1976d2' }}>
                   Download sample users file
                 </a>
               </Typography>

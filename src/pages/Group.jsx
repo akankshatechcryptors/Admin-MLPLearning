@@ -6,42 +6,93 @@ import AddIcon from '@mui/icons-material/Add';
 import { useLocation } from 'react-router-dom';
 import UploadUsersModal from '../components/UploadUser';
 import { encryptPassword } from "../common/crypt";
-import { addUser } from '../common/api';
+import { addUser, uploadUsers, editUser } from '../common/api';
+import {toast} from  'react-toastify'
 const Groups = () => {
   const [openModal, setOpenModal] = useState(false);
-  const [editUser, setEditUser] = useState(null);
+  const [editingUser, setEditingUser] = useState(null); // renamed to avoid conflict
   const [uploadedUsers, setUploadedUsers] = useState([]);
   const [confirmAction, setConfirmAction] = useState(null); // {type, user, group}
+  const[update,setUpdate]=useState(false)
+
   const location = useLocation();
   const { state } = location;
   const groupName = state?.title || ""; // empty means "All Users"
-  const groupId=state?.id||''
+  const groupId = state?.id || '';
+ const handleUpdate=()=>{
+  setUpdate(!update)
+ }
   const handleAddClick = () => {
-    setEditUser(null);
+    setEditingUser(null);
     setOpenModal(true);
   };
 
   const handleEditClick = (user) => {
-    setEditUser(user);
+    setEditingUser(user);
     setOpenModal(true);
   };
 
-  const handleSaveUser = async(userData) => {
-  try {
+  const handleSaveUser = async (userData) => {
+    try {
       if (userData.password) {
-    userData.password = encryptPassword(userData.password);
-  }
-  const res = await addUser(userData); // wait for the promise
-  console.log(res)
-} catch (err) {
-  console.error("Error while adding user" ,err)
-    setOpenModal(false);
-  };
-}
+        userData.password = encryptPassword(userData.password);
+      }
 
-  const handleUploadUsers = (usersData) => {
-    console.log('Uploaded users:', usersData);
-    setUploadedUsers(usersData);
+      let res;
+      if (editingUser) {
+        console.log(editingUser.password)
+        const data={
+          id:editingUser.id,
+          fullname:editingUser.fullname,
+          email:editingUser.email,
+          type:editingUser.type,
+          password:userData.password,
+          contact:editingUser.contact
+        }
+        console.log(data)
+        // 📝 Editing existing user
+        res = await editUser(data);
+        console.log("User edited:", res);
+        if(!res.data.error){
+          toast.success(res.data.message)
+          handleUpdate()
+        }
+        else{
+          toast.error(res.data.message)
+        }
+      } else {
+        // ➕ Adding new user
+        res = await addUser(userData);
+        console.log("User added:", res);
+         if(!res.data.error){
+          toast.success(res.data.message)
+          handleUpdate()
+        }
+        else{
+          toast.error(res.data.message)
+        }
+      }
+
+      setOpenModal(false);
+    } catch (err) {
+      console.error("Error while saving user", err);
+      setOpenModal(false);
+    }
+  };
+
+  const handleUploadUsers = async (file) => {
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+      if (groupId) formData.append('group_id', groupId);
+
+      const res = await uploadUsers(formData);
+      console.log("Uploaded users response:", res);
+      setOpenModal(false);
+    } catch (err) {
+      console.error("Error uploading users", err);
+      setOpenModal(false);
+    }
   };
 
   const handleDelete = (user, type, group = null) => {
@@ -91,7 +142,7 @@ const Groups = () => {
       <UploadUsersModal
         open={openModal}
         onClose={() => setOpenModal(false)}
-        initialData={editUser}
+        initialData={editingUser}
         groupId={groupId}
         onSaveSingle={handleSaveUser}
         onUploadBulk={handleUploadUsers}
