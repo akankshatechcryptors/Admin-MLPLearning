@@ -1,6 +1,7 @@
 import axios from 'axios'
 const api = axios.create({
-  baseURL: "http://localhost:7000/"
+  //baseURL: "http://localhost:7000/"
+  baseURL:"http://idsadossier2025-mindslablearning.ap-south-1.elasticbeanstalk.com/"
 })
 // 🔑 Interceptor to always attach token from localStorage
 // 🔑 Request interceptor to attach token
@@ -38,7 +39,7 @@ export const editUser=(data)=>{
   return api.post("users/edit_user",data)
 }
 export const login = (data) => {
-  return axios.post('http://localhost:7000/admins/login', data)
+  return axios.post('http://idsadossier2025-mindslablearning.ap-south-1.elasticbeanstalk.com/admins/login', data)
 }
 export const getUsers = (id) => {
   return api.post("users/get_users", id)
