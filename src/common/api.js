@@ -133,3 +133,6 @@ export const uploadQuestions=(data)=>{
 export const deleteQuestion=(data)=>{
   return api.post("questions/delete_questions",data)
 }
+export const udpateMinScore=(data)=>{
+  return api.post("exams/update_min_marks",data)
+}

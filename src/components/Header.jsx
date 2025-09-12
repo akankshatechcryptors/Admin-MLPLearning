@@ -38,7 +38,7 @@ const Header = () => {
 
   // Get username from localStorage
   const user = JSON.parse(localStorage.getItem('user'));
-  const username = user?.fullname || 'User';
+  const username = user?.fullname || 'Admin';
   const id=user?.id||''
   const handleLogout = () => {
     auth.signout(() => {

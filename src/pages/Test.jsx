@@ -7,13 +7,20 @@ import {
   Button,
   Menu,
   MenuItem,
-  CircularProgress
+  CircularProgress,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  TextField
 } from "@mui/material";
+import {useNavigate} from 'react-router-dom'
 import AllotTestModal from "../components/AllotTest";
 import {
   getFolder,
   addFolder,
   editFolder,
+  editExam,
   addExam,
   getExam,
   moveFolder,
@@ -27,7 +34,7 @@ export default function TestPage() {
   const [folders, setFolders] = useState([]);
   const [unassignedTests, setUnassignedTests] = useState([]);
   const [loading,setLoading]=useState(false)
-  
+  const navigate=useNavigate();
   // dropdown state
   const [anchorEl, setAnchorEl] = useState(null);
   const [selectedTest, setSelectedTest] = useState(null);
@@ -71,11 +78,9 @@ export default function TestPage() {
     }
   };
  const handleAllotTest = async (data) => {
-  console.log(data)
     try {
      const res= await allotTest(data);
-     console.log(res,'test  is alloted')
-      handleUpdate();
+     handleUpdate();
     } catch (error) {
       console.log(error);
     }
@@ -103,11 +108,19 @@ export default function TestPage() {
     }
   };
 
-  const handleEditTest = (id, newTitle) => {
-    setUnassignedTests((prev) =>
-      prev.map((t) => (t.id === id ? { ...t, title: newTitle } : t))
-    );
-  };
+  const [openEditTestModal, setOpenEditTestModal] = useState(false);
+const [editingTest, setEditingTest] = useState(null);
+
+const handleEditTest = async (id, newTitle, newDesc) => {
+  try {
+    await editExam({ id, title: newTitle, description: newDesc, update: true });
+    // or make a separate editExam API if you have
+    handleUpdate();
+  } catch (error) {
+    console.log(error);
+  }
+};
+
 
   const handleDeleteTest = (id) => {
     setUnassignedTests((prev) => prev.filter((t) => t.id !== id));
@@ -152,7 +165,7 @@ export default function TestPage() {
           gap: 2,
         }}
       >
-        <CircularProgress size={60} thickness={4} sx={{ color: "blue" }} />
+        <CircularProgress size={60} thickness={4} sx={{ color: "primary" }} />
         <Typography variant="h6" sx={{ mt: 2, color: "gray" }}>
           Loading Tests...
         </Typography>
@@ -187,7 +200,11 @@ export default function TestPage() {
                 }}
               >
                 <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                  <Typography sx={{ fontWeight: "bold" }}>
+                  <Typography sx={{ fontWeight: "bold" }} 
+                  onClick={() =>
+                    navigate("/add-questions", 
+                      { state: { testName: test.title, instructions: test.description ,id:test.id} })
+                  }>
                     {test.title}
                   </Typography>
                   {test.allocated_group_count !==0 && (
@@ -224,12 +241,10 @@ export default function TestPage() {
                   <Button
                     size="small"
                     sx={{ color: "green" }}
-                    onClick={() =>
-                      handleEditTest(
-                        test.id,
-                        prompt("Edit Test Name:", test.title) || test.title
-                      )
-                    }
+                    onClick={() => {
+    setEditingTest(test);
+    setOpenEditTestModal(true);
+  }}
                   >
                     Edit Name
                   </Button>
@@ -263,6 +278,41 @@ export default function TestPage() {
         ))}
       </Menu>
      </>)}
+<Dialog open={openEditTestModal} onClose={() => setOpenEditTestModal(false)}>
+  <DialogTitle>Edit Test</DialogTitle>
+  <DialogContent>
+    <TextField
+      margin="dense"
+      label="Test Name"
+      fullWidth
+      value={editingTest?.title || ""}
+      onChange={(e) =>
+        setEditingTest({ ...editingTest, title: e.target.value })
+      }
+    />
+    <TextField
+      margin="dense"
+      label="Instructions"
+      fullWidth
+      value={editingTest?.description || ""}
+      onChange={(e) =>
+        setEditingTest({ ...editingTest, description: e.target.value })
+      }
+    />
+  </DialogContent>
+  <DialogActions>
+    <Button onClick={() => setOpenEditTestModal(false)}>Cancel</Button>
+    <Button
+      variant="contained"
+      onClick={() => {
+        handleEditTest(editingTest.id, editingTest.title, editingTest.description);
+        setOpenEditTestModal(false);
+      }}
+    >
+      Save
+    </Button>
+  </DialogActions>
+</Dialog>
 
       <AllotTestModal
         open={openAllotModal}

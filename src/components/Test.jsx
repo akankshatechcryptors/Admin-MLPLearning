@@ -31,13 +31,19 @@ import {
   addSections,
   getSections,
   editSections,
+  editQuestion,
   addQuestions,
   uploadQuestions,
+  udpateMinScore,
+  deleteSections,
+  deleteQuestion
 } from '../common/api';
 export default function TestSections() {
   const location = useLocation();
   const testName = location.state?.testName || '';
   const testId = location.state?.id || '';
+  const[update,setUpdate]=useState(false)
+
   // Sections state
   const [sections, setSections] = useState([]);
   const [sectionName, setSectionName] = useState('');
@@ -45,7 +51,7 @@ export default function TestSections() {
   const [sectionPdf, setSectionPdf] = useState(null);
   const [openSectionModal, setOpenSectionModal] = useState(false);
   const [editingSectionIndex, setEditingSectionIndex] = useState(null);
-
+  const [minMarks, setMinMarks] = useState(1);
   // Upload modal
   const [uploadModalOpen, setUploadModalOpen] = useState(false);
   const [selectedSectionId, setSelectedSectionId] = useState(null);
@@ -53,6 +59,7 @@ export default function TestSections() {
   const [editIndex, setEditIndex] = useState(null);
   const [editSectionIndex, setEditSectionIndex] = useState(null);
   const [editData, setEditData] = useState(null);
+  const [openMinMarksModal, setOpenMinMarksModal] = useState(false);
 
   // Delete multiple questions state
   const [deleteMode, setDeleteMode] = useState(null);
@@ -84,6 +91,9 @@ export default function TestSections() {
       section_id: q.section_id,
     };
   };
+  const handleUpdate=()=>{
+    setUpdate(!update)
+  }
   const getData = async () => {
     try {
       const res = await getSections({ exam_id: testId });
@@ -96,10 +106,10 @@ export default function TestSections() {
       console.log(error);
     }
   };
-
+console.log(update)
   useEffect(() => {
     getData();
-  }, [testId]);
+  }, [update]);
   // Save Section
   const handleSaveSection = async () => {
     if (!sectionName.trim()) return;
@@ -114,6 +124,8 @@ export default function TestSections() {
           ? sectionPdf.name
           : newSections[editingSectionIndex].pdf,
       };
+
+
     } else {
       const formData = new FormData();
       formData.append('exam_id', testId);
@@ -127,11 +139,13 @@ export default function TestSections() {
       }
       const res = await addSections(formData);
       console.log(res);
+      
     }
     toast.success('Section Created Successfully');
 
     setSections(newSections);
     handleCloseSectionModal();
+    handleUpdate()
   };
 
   const handleCloseSectionModal = () => {
@@ -180,23 +194,52 @@ export default function TestSections() {
   };
 
   // Delete Question
-  const handleDeleteQuestion = (sectionIndex, qIndex) => {
+  const handleDeleteQuestion = async (sectionIndex, qIndex) => {
+  const questionId = sections[sectionIndex].questions[qIndex].id;
+  try {
+    await deleteQuestion({ id: questionId }); // API call
+    toast.success('Question deleted successfully');
     const newSections = [...sections];
     newSections[sectionIndex].questions.splice(qIndex, 1);
     setSections(newSections);
-  };
+  } catch (err) {
+    console.error(err);
+    toast.error('Failed to delete question');
+  }
+};
+const handleDeleteSection = async (sectionId) => {
+  try {
+    const res=await deleteSections({ section_id: sectionId }); // call API
+    if(!res.data.error){
+ toast.success('Section deleted successfully');
+    handleUpdate(); // refresh sections
+    }
+   else{
+    toast.error(res.data.message);
+   }
+  } catch (err) {
+    console.error(err);
+    toast.error('Failed to delete section');
+  }
+};
 
   // Delete Selected
-  const handleDeleteSelectedQuestions = () => {
-    if (deleteMode === null) return;
-    const newSections = [...sections];
-    newSections[deleteMode].questions = newSections[
-      deleteMode
-    ].questions.filter((q) => !selectedQuestions.includes(q.id));
-    setSections(newSections);
+ const handleDeleteSelectedQuestions = async () => {
+  if (deleteMode === null || selectedQuestions.length === 0) return;
+  try {
+    for (let qId of selectedQuestions) {
+      await deleteQuestion({ id: qId });
+    }
+    toast.success('Selected questions deleted successfully');
+    handleUpdate(); // refresh sections
     setDeleteMode(null);
     setSelectedQuestions([]);
-  };
+  } catch (err) {
+    console.error(err);
+    toast.error('Failed to delete selected questions');
+  }
+};
+
 
   // Open Edit
   const handleEditOpen = (sectionIndex, qIndex) => {
@@ -228,10 +271,9 @@ export default function TestSections() {
       const res = await uploadQuestions(formData);
       console.log(res);
       toast.success('Questions uploaded successfully');
-      getData();
+      handleUpdate()
     } catch (err) {
       console.error(err);
-      toast.error('Failed to upload questions');
     } finally {
       setUploadModalOpen(false);
       setSelectedSectionId(null);
@@ -247,7 +289,7 @@ export default function TestSections() {
         toast.success('Question added successfully');
       } else {
         // Update existing question
-        await editSections(payload); // or editQuestion API if separate
+        await editQuestion({ id: editData.id, ...payload });
         toast.success('Question updated successfully');
       }
 
@@ -264,6 +306,16 @@ export default function TestSections() {
     setEditSectionIndex(null);
     setEditData(null);
   };
+  const handleMinMarksSave = async () => {
+    try {
+      await udpateMinScore({ exam_id: testId, min_marks: minMarks });
+      toast.success('Minimum marks updated successfully');
+      setOpenMinMarksModal(false);
+    } catch (err) {
+      console.error(err);
+      toast.error('Failed to update minimum marks');
+    }
+  };
 
   return (
     <Box className="p-6 bg-gray-50 min-h-screen">
@@ -273,6 +325,20 @@ export default function TestSections() {
         <Typography variant="h5" fontWeight="bold">
           {testName}
         </Typography>
+        <Button
+          variant="outlined"
+          sx={{
+            bgcolor: 'transparent',
+            '&:hover': { bgcolor: '#0077B6', color: 'white' },
+            color: '#0077B6',
+            textTransform: 'none',
+            borderRadius: '25px',
+            width: '15%',
+          }}
+          onClick={() => setOpenMinMarksModal(true)}
+        >
+          Add Minimum Marks
+        </Button>
         <Button
           variant="outlined"
           sx={{
@@ -302,30 +368,30 @@ export default function TestSections() {
                 bgcolor: 'white',
               }}
             >
-             <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-  <Typography fontWeight="bold">{sec.title}</Typography>
-</AccordionSummary>
+              <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+                <Typography fontWeight="bold">{sec.title}</Typography>
+              </AccordionSummary>
 
-{/* Put actions OUTSIDE AccordionSummary */}
-<Box display="flex" gap={1} pl={2} pt={1}>
-  <IconButton
-    onClick={(e) => {
-      e.stopPropagation();
-      handleEditSection(secIndex);
-    }}
-  >
-    <EditIcon color="primary" sx={{ width: "18px" }} />
-  </IconButton>
+              {/* Put actions OUTSIDE AccordionSummary */}
+              <Box display="flex" gap={1} pl={2} pt={1}>
+                <IconButton
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleEditSection(secIndex);
+                  }}
+                >
+                  <EditIcon color="primary" sx={{ width: '18px' }} />
+                </IconButton>
 
-  <IconButton
-    onClick={(e) => {
-      e.stopPropagation();
-      handleDeleteSection(sec.id);
-    }}
-  >
-    <DeleteIcon color="error" sx={{ width: "18px" }} />
-  </IconButton>
-</Box>
+                <IconButton
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleDeleteSection(sec.id);
+                  }}
+                >
+                  <DeleteIcon color="error" sx={{ width: '18px' }} />
+                </IconButton>
+              </Box>
 
               <AccordionDetails sx={{ bgcolor: 'white' }}>
                 {/* Action buttons ON TOP */}
@@ -548,10 +614,10 @@ export default function TestSections() {
             sx={{ mt: 2 }}
             startIcon={<CloudUploadIcon />}
           >
-            Upload PDF
+            Upload PDF/Video
             <input
               type="file"
-              accept="application/pdf"
+              accept="application/pdf,video"
               hidden
               onChange={(e) => setSectionPdf(e.target.files[0])}
             />
@@ -632,6 +698,33 @@ export default function TestSections() {
           </Button>
         </DialogActions>
       </Dialog>
+      {/* Minimum Marks Modal */}
+      <Dialog
+        open={openMinMarksModal}
+        onClose={() => setOpenMinMarksModal(false)}
+        fullWidth
+      >
+        <DialogTitle>Set Minimum Marks</DialogTitle>
+        <DialogContent>
+          <TextField
+            label="Minimum Marks Required to Pass"
+            type="number"
+            fullWidth
+            margin="normal"
+            value={minMarks}
+            onChange={(e) => setMinMarks(Number(e.target.value))}
+          />
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setOpenMinMarksModal(false)}>Cancel</Button>
+          <Button
+            variant="contained"
+            onClick={handleMinMarksSave}
+          >
+            Save
+          </Button>
+        </DialogActions>
+      </Dialog>
 
       {/* Upload Excel */}
       <UploadExcelModal
@@ -641,7 +734,7 @@ export default function TestSections() {
           setSelectedSectionId(null);
         }}
         onUpload={handleUploadQuestions}
-        sectionId={selectedSectionId}   // pass it here
+        sectionId={selectedSectionId} // pass it here
       />
     </Box>
   );

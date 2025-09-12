@@ -56,10 +56,8 @@ const handleUpdate=()=>{
 }
 
  const handleAllotTest = async (data) => {
-  console.log(data)
     try {
      const res= await allotTest(data);
-     console.log(res,'test  is alloted')
       handleUpdate();
     } catch (error) {
       console.log(error);
@@ -71,6 +69,7 @@ const handleUpdate=()=>{
     try {
       const data = { folder_id: folder_id, group_id: "" };
       const res = await getExam(data);
+      console.log(res.data.groups);
       setTests(res.data.groups);
     } catch (error) {
       console.error(error);

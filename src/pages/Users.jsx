@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Button, Box } from '@mui/material';
+import { Button, Box, CircularProgress } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
 import Card from '../components/GroupCards';
 import CreateGroupModal from '../components/CreateGroupModal';
@@ -12,17 +12,21 @@ const Users = () => {
   const [groups, setGroups] = useState([]);
   const [update, setUpdate] = useState(false);
   const [editingGroup, setEditingGroup] = useState(null);
+  const [loading, setLoading] = useState(true); // ✅ loader state
   const navigate = useNavigate();
 
   const handleUpdate = () => setUpdate(!update);
 
   // Fetch groups from API
   const getGroupdata = async () => {
+    setLoading(true);
     try {
       const res = await getGroups();
       if (!res.data.error) setGroups(res.data.groups);
     } catch (err) {
       console.error("Failed to fetch groups:", err);
+    } finally {
+      setLoading(false); // ✅ hide loader after fetch
     }
   };
 
@@ -65,7 +69,7 @@ const Users = () => {
   };
 
   const handleDeleteGroup = (id) => {
-    setGroups(groups.filter(g => g.id !== id));
+    setGroups(groups.filter((g) => g.id !== id));
   };
 
   return (
@@ -80,24 +84,34 @@ const Users = () => {
             setEditingGroup(null);
             setOpenGroupModal(true);
           }}
-          sx={{ borderRadius: '50px', '&:hover': { backgroundColor: '#e3f2ff' } }}
+          sx={{
+            borderRadius: '50px',
+            '&:hover': { backgroundColor: '#e3f2ff' },
+          }}
         >
           Create Group
         </Button>
       </Box>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-        {groups.map((group) => (
-          <Card
-            key={group.id}
-            title={group.title}
-            count={group.user_count}
-            onView={() => handleViewGroup(group.title, group.id)}
-            onEdit={() => handleEditGroup(group)}
-            onDelete={() => handleDeleteGroup(group.id)}
-          />
-        ))}
-      </div>
+      {/* ✅ Loader while fetching */}
+      {loading ? (
+        <Box className="flex justify-center items-center h-64">
+          <CircularProgress />
+        </Box>
+      ) : (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          {groups.map((group) => (
+            <Card
+              key={group.id}
+              title={group.title}
+              count={group.user_count}
+              onView={() => handleViewGroup(group.title, group.id)}
+              onEdit={() => handleEditGroup(group)}
+              onDelete={() => handleDeleteGroup(group.id)}
+            />
+          ))}
+        </div>
+      )}
 
       <CreateGroupModal
         open={openGroupModal}
