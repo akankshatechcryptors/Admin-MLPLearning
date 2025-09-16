@@ -39,7 +39,7 @@ export default function TestPage() {
   const [anchorEl, setAnchorEl] = useState(null);
   const [selectedTest, setSelectedTest] = useState(null);
   const handleUpdate = () => setUpdate(!update);
-
+  const today = new Date().toISOString().split("T")[0];
   const getFolders = async () => {
     setLoading(true)
     try {
@@ -47,7 +47,7 @@ export default function TestPage() {
       setFolders(res.data.folders);
       setLoading(false)
     } catch (error) {
-      console.log(error);
+      console.error(error);
     }
   };
 
@@ -56,11 +56,11 @@ export default function TestPage() {
     const data = { folder_id: "", group_id: "" };
     try {
       const res = await getExam(data);
-      console.log(res)
+      //console.log(res)
       setUnassignedTests(res.data.groups);
       setLoading(false)
     } catch (error) {
-      console.log(error);
+      console.error(error);
     }
   };
 
@@ -74,7 +74,7 @@ export default function TestPage() {
       await addFolder({ title: name });
       handleUpdate();
     } catch (error) {
-      console.log(error);
+      console.error(error);
     }
   };
  const handleAllotTest = async (data) => {
@@ -82,7 +82,7 @@ export default function TestPage() {
      const res= await allotTest(data);
      handleUpdate();
     } catch (error) {
-      console.log(error);
+      console.error(error);
     }
   };
 
@@ -91,7 +91,7 @@ export default function TestPage() {
       await editFolder({ folder_id: id, title: newName });
       handleUpdate();
     } catch (error) {
-      console.log(error);
+      console.error(error);
     }
   };
 
@@ -104,7 +104,7 @@ export default function TestPage() {
       await addExam({ title: name, description: desc });
       handleUpdate();
     } catch (error) {
-      console.log(error);
+      console.error(error);
     }
   };
 
@@ -117,7 +117,7 @@ const handleEditTest = async (id, newTitle, newDesc) => {
     // or make a separate editExam API if you have
     handleUpdate();
   } catch (error) {
-    console.log(error);
+    console.error(error);
   }
 };
 
@@ -131,7 +131,7 @@ const handleEditTest = async (id, newTitle, newDesc) => {
       await moveFolder({ exam_id: testId, folder_id: folderId });
       handleUpdate();
     } catch (error) {
-      console.log(error);
+      console.error(error);
     }
   };
 
@@ -203,7 +203,10 @@ const handleEditTest = async (id, newTitle, newDesc) => {
                   <Typography sx={{ fontWeight: "bold" }} 
                   onClick={() =>
                     navigate("/add-questions", 
-                      { state: { testName: test.title, instructions: test.description ,id:test.id} })
+                      { state: { testName: test.title, 
+                        instructions: test.description 
+                        ,id:test.id,
+                        startDate:test.start_date }})
                   }>
                     {test.title}
                   </Typography>
@@ -255,13 +258,13 @@ const handleEditTest = async (id, newTitle, newDesc) => {
                   >
                     Move to Folder
                   </Button>
-                  <Button
+                  {/* <Button
                     size="small"
                     sx={{ color: "green" }}
                     onClick={() => handleDeleteTest(test.id)}
                   >
                     Delete
-                  </Button>
+                  </Button> */}
                 </Box>
               </Box>
             ))}

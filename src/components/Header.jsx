@@ -63,7 +63,7 @@ const Header = () => {
         password:enc
       }
       const res=await changePassword(data)
-      console.log(res)
+      //console.log(res)
     } catch (error) {
       
     }
@@ -113,7 +113,7 @@ const Header = () => {
 </Box>
 
         {/* Search bar */}
-        <Box
+        {/* <Box
           component="form"
           onSubmit={handleSearchSubmit}
           className="flex items-center bg-gray-100 rounded-full px-3 py-1 w-full max-w-xl"
@@ -125,7 +125,7 @@ const Header = () => {
             value={searchText}
             onChange={(e) => setSearchText(e.target.value)}
           />
-        </Box>
+        </Box> */}
 
         {/* Username + Avatar */}
         <Box className="flex items-center gap-2">

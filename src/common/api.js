@@ -32,7 +32,7 @@ api.interceptors.response.use(
   }
 );
 export const addUser = (data) => {
-  console.log(data)
+  //console.log(data)
   return api.post("users/add_user", data)
 }
 export const editUser=(data)=>{

@@ -187,8 +187,8 @@ If something goes wrong, contact your tutor and communicate the problem.`;
                 {folder.title}
               </Typography>
             </CardContent>
-
-            {/* Delete Icon */}
+{/* 
+           
             <IconButton
               size="small"
               sx={{
@@ -204,7 +204,7 @@ If something goes wrong, contact your tutor and communicate the problem.`;
               }}
             >
               <DeleteIcon fontSize="small" sx={{ color: "#000" }} />
-            </IconButton>
+            </IconButton> */}
           </Card>
         ))}
       </Box>

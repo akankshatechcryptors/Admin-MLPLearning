@@ -33,7 +33,7 @@ const AllotTestModal = ({ open, onClose, onSubmit ,selectedTest}) => {
     const getGroupdata = async () => {
       try {
         const res = await getGroups();
-        console.log(res)
+        //console.log(res)
         if (!res.data.error) setGroups(res.data.groups);
       } catch (err) {
         console.error("Failed to fetch groups:", err);
@@ -61,7 +61,7 @@ const AllotTestModal = ({ open, onClose, onSubmit ,selectedTest}) => {
 
   return (
     <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
-      <DialogTitle>Allot test - Third Test</DialogTitle>
+      <DialogTitle>Allot test</DialogTitle>
       <DialogContent>
         {/* Groups */}
         <FormControl fullWidth margin="dense">

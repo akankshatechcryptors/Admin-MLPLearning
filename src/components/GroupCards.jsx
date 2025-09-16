@@ -28,11 +28,11 @@ const Card = ({ title, count, onEdit, onDelete, onView }) => {
           </IconButton>
         </Tooltip>
 
-        <Tooltip title="Delete Group">
+        {/* <Tooltip title="Delete Group">
           <IconButton onClick={onDelete} color="error" aria-label="delete">
             <DeleteIcon />
           </IconButton>
-        </Tooltip>
+        </Tooltip> */}
       </div>
     </motion.div>
   );

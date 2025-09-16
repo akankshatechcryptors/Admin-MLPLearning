@@ -188,11 +188,11 @@ const GroupDetails = ({ onEditClick }) => {
           <IconButton size="small" color="primary" onClick={() => handleEdit(row.original)}>
             <EditIcon fontSize="small" />
           </IconButton>
-          {!groupName && (
+          {/* {!groupName && (
             <IconButton size="small" color="error" onClick={() => handleDelete(row.original)}>
               <DeleteIcon fontSize="small" />
             </IconButton>
-          )}
+          )} */}
           {groupName && (
             <Button
               size="small"

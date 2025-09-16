@@ -8,6 +8,7 @@ import UploadUsersModal from '../components/UploadUser';
 import { encryptPassword } from "../common/crypt";
 import { addUser, uploadUsers, editUser } from '../common/api';
 import {toast} from  'react-toastify'
+
 const Groups = () => {
   const [openModal, setOpenModal] = useState(false);
   const [editingUser, setEditingUser] = useState(null); // renamed to avoid conflict
@@ -40,30 +41,29 @@ const Groups = () => {
 
       let res;
       if (editingUser) {
-        console.log(editingUser.password)
         const data={
           id:editingUser.id,
-          fullname:editingUser.fullname,
-          email:editingUser.email,
-          type:editingUser.type,
-          password:userData.password,
-          contact:editingUser.contact
+          fullname:userData.fullname,
+          email:userData.email,
+          type:userData.type,
+          password:userData.password||'',
+          contact:userData.contact
         }
-        console.log(data)
+        //console.log(data)
         // 📝 Editing existing user
         res = await editUser(data);
-        console.log("User edited:", res);
+        //console.log(res.data.error)
         if(!res.data.error){
           toast.success(res.data.message)
-          handleUpdate()
         }
+        
         else{
           toast.error(res.data.message)
         }
       } else {
         // ➕ Adding new user
         res = await addUser(userData);
-        console.log("User added:", res);
+        //console.log("User added:", res);
          if(!res.data.error){
           toast.success(res.data.message)
           handleUpdate()
@@ -87,7 +87,7 @@ const Groups = () => {
       if (groupId) formData.append('group_id', groupId);
 
       const res = await uploadUsers(formData);
-      console.log("Uploaded users response:", res);
+      //console.log("Uploaded users response:", res);
       setOpenModal(false);
     } catch (err) {
       console.error("Error uploading users", err);
@@ -101,9 +101,9 @@ const Groups = () => {
 
   const confirmDelete = () => {
     if (confirmAction?.type === "deleteUser") {
-      console.log("Deleting user permanently:", confirmAction.user);
+      //console.log("Deleting user permanently:", confirmAction.user);
     } else if (confirmAction?.type === "removeFromGroup") {
-      console.log(`Removing ${confirmAction.user.name} from group ${confirmAction.group}`);
+      //console.log(`Removing ${confirmAction.user.name} from group ${confirmAction.group}`);
     }
     setConfirmAction(null);
   };

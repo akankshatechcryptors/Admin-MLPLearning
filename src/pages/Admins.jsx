@@ -104,7 +104,7 @@ const AdminsPage = () => {
       if (editMode) {
         // Update via API
         const res =await editAdmin({id:editId,fullname, email, type, password: encryptedPassword });
-        console.log(res)
+        //console.log(res)
         if(!res.data.error){
           toast.success("Admin updated successfully");
         }
@@ -176,12 +176,12 @@ const AdminsPage = () => {
             >
               <EditIcon />
             </IconButton>
-            <IconButton
+            {/* <IconButton
               color="error"
               onClick={() => requestDeleteAdmin(row.original.id)}
             >
               <DeleteIcon />
-            </IconButton>
+            </IconButton> */}
           </div>
         ),
       },

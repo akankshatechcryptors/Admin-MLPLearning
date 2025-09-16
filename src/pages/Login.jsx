@@ -27,7 +27,7 @@ const handleLogin = async (e) => {
 
   // 🔐 Encrypt the password entered by user
   const encryptedPassword = encryptPassword(password);
-  console.log(encryptedPassword)
+  //console.log(encryptedPassword)
   const data = {
     email: email,
     password: encryptedPassword,
@@ -36,6 +36,7 @@ const handleLogin = async (e) => {
   try {
     const res = await login(data);
     const user = res.data;
+    console.log(res)
 
     if (user.error) {
       // ❌ Show error from backend

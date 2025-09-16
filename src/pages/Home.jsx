@@ -1,26 +1,24 @@
-import React from 'react';
+import React, { useContext } from 'react';
 import DashboardCard from '../components/DashboardCards';
 import DashboardIcon from '@mui/icons-material/Dashboard';
 import GroupIcon from '@mui/icons-material/Group';
 import AssignmentIcon from '@mui/icons-material/Assignment';
 import BarChartIcon from '@mui/icons-material/BarChart';
 import AdminPanelSettingsIcon from '@mui/icons-material/AdminPanelSettings';
-import User from '@mui/icons-material/VerifiedUserRounded'
+import User from '@mui/icons-material/VerifiedUserRounded';
+import AuthContext from '../common/AuthContext';
+
 const Home = () => {
-  const cards = [
+  const auth = useContext(AuthContext);
+  console.log(auth)
+
+  const baseCards = [
     {
       title: 'Dashboard',
       subtitle: 'View comprehensive test analytics',
       icon: <DashboardIcon />,
       bgColor: 'bg-gradient-to-br from-blue-100 to-blue-200',
-      path: '/',
-    },
-    {
-      title: 'Users',
-      subtitle: 'Manage doctors and Groups',
-      icon: <User />,
-      bgColor: 'bg-gradient-to-br from-amber-100 to-amber-200',
-      path: '/users',
+      path: '/dashboard',
     },
     {
       title: 'Tests',
@@ -36,14 +34,24 @@ const Home = () => {
       bgColor: 'bg-gradient-to-br from-gray-100 to-gray-200',
       path: '/summary',
     },
-     {
+  ];
+
+  const superAdminCards = [
+    {
+      title: 'Users',
+      subtitle: 'Manage doctors and Groups',
+      icon: <User />,
+      bgColor: 'bg-gradient-to-br from-amber-100 to-amber-200',
+      path: '/users',
+    },
+    {
       title: 'Admins',
       subtitle: 'Manage admin accounts and permissions',
       icon: <AdminPanelSettingsIcon />,
       bgColor: 'bg-gradient-to-br from-pink-100 to-pink-200',
       path: '/admins',
     },
-     {
+    {
       title: 'Groups',
       subtitle: 'Manage Groups',
       icon: <GroupIcon />,
@@ -52,9 +60,15 @@ const Home = () => {
     },
   ];
 
+  // Merge depending on role
+  const cards =
+    auth?.type === 'superadmin' ? [...baseCards, ...superAdminCards] : baseCards;
+
   return (
     <div className="p-8 bg-gray-50 min-h-screen">
-      <h1 className="text-3xl font-semibold text-gray-800 mb-6 text-center">Doctor Certification Portal</h1>
+      <h1 className="text-3xl font-semibold text-gray-800 mb-6 text-center">
+        Doctor Certification Portal
+      </h1>
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 justify-items-center">
         {cards.map((card, i) => (
           <DashboardCard key={i} {...card} />

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState } from 'react';
 import {
   Box,
   Typography,
@@ -11,12 +11,12 @@ import {
   DialogActions,
   TextField,
   CircularProgress,
-} from "@mui/material";
-import AddIcon from "@mui/icons-material/Add";
-import { useLocation, useNavigate } from "react-router-dom";
-import Breadcrumbs from "./BreadCrumb";
-import AllotTestModal from "./AllotTest";
-import { getExam, addExam ,editExam,allotTest } from "../common/api";
+} from '@mui/material';
+import AddIcon from '@mui/icons-material/Add';
+import { useLocation, useNavigate } from 'react-router-dom';
+import Breadcrumbs from './BreadCrumb';
+import AllotTestModal from './AllotTest';
+import { getExam, addExam, editExam, allotTest } from '../common/api';
 
 const DEFAULT_INSTRUCTIONS = `This is a timed test; the running time is displayed on top left corner of the screen.
 The bar above the question text displays the question numbers in the current section of the test. You can move to any question by clicking on the respective number.
@@ -36,40 +36,56 @@ If something goes wrong, contact your tutor and communicate the problem.`;
 
 const TestCards = () => {
   const location = useLocation();
-  const folderName = location.state?.folder?.title || "";
-  const folder_id = location.state?.id || "";
+  const folderName = location.state?.folder?.title || '';
+  const folder_id = location.state?.id || '';
   const [anchorEl, setAnchorEl] = useState(null);
   const [openModal, setOpenModal] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [tests, setTests] = useState([]);
-  const [name, setName] = useState("");
+  const [name, setName] = useState('');
   const [instructions, setInstructions] = useState(DEFAULT_INSTRUCTIONS);
   const [editId, setEditId] = useState(null);
   const [openAllotModal, setOpenAllotModal] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [update,setUpdate]=useState(false)
+  const [update, setUpdate] = useState(false);
   const [selectedTest, setSelectedTest] = useState(null);
-//console.log(selectedTest)
-  const navigate = useNavigate();
-const handleUpdate=()=>{
-  setUpdate(!update)
+  //console.log(selectedTest)
+
+
+function isRestricted(dateStart) {
+  if (!dateStart) return false; // null or undefined → not restricted
+
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  const startDate = new Date(dateStart);
+  if (isNaN(startDate.getTime())) return false; // invalid date → not restricted
+  startDate.setHours(0, 0, 0, 0);
+
+  return startDate <= today;
 }
 
- const handleAllotTest = async (data) => {
+  
+  const navigate = useNavigate();
+  const handleUpdate = () => {
+    setUpdate(!update);
+  };
+
+  const handleAllotTest = async (data) => {
     try {
-     const res= await allotTest(data);
+      const res = await allotTest(data);
       handleUpdate();
     } catch (error) {
       console.log(error);
     }
-  }
+  };
   // --- Fetch tests ---
   const getExams = async () => {
     setLoading(true);
     try {
-      const data = { folder_id: folder_id, group_id: "" };
+      const data = { folder_id: folder_id, group_id: '' };
       const res = await getExam(data);
-      console.log(res.data.groups);
+      //console.log(res.data.groups);
       setTests(res.data.groups);
     } catch (error) {
       console.error(error);
@@ -87,7 +103,7 @@ const handleUpdate=()=>{
 
   const handleAddTest = () => {
     setIsEditing(false);
-    setName("");
+    setName('');
     setInstructions(DEFAULT_INSTRUCTIONS);
     setOpenModal(true);
     handleMenuClose();
@@ -102,27 +118,31 @@ const handleUpdate=()=>{
   };
 
   const handleSave = async () => {
-    const trimmedName = name.trim().replace(/"/g, "");
-    const trimmedInstructions = instructions.trim().replace(/"/g, "");
+    const trimmedName = name.trim().replace(/"/g, '');
+    const trimmedInstructions = instructions.trim().replace(/"/g, '');
 
     if (!trimmedName) return;
 
     try {
       if (isEditing) {
         // TODO: implement editExam API
-        const data={
-          id:editId,
-          title: trimmedName, 
+        const data = {
+          id: editId,
+          title: trimmedName,
           description: trimmedInstructions,
-          folder_id
-        }
-        const res=await editExam(data)
-        handleUpdate()
-        console.log("Edit Test:", editId, trimmedName, trimmedInstructions);
+          folder_id,
+        };
+        const res = await editExam(data);
+        handleUpdate();
+        //console.log('Edit Test:', editId, trimmedName, trimmedInstructions);
       } else {
-        const data = { title: trimmedName, description: trimmedInstructions, folder_id };
+        const data = {
+          title: trimmedName,
+          description: trimmedInstructions,
+          folder_id,
+        };
         await addExam(data);
-       handleUpdate()
+        handleUpdate();
       }
     } catch (error) {
       console.error(error);
@@ -131,30 +151,36 @@ const handleUpdate=()=>{
     setOpenModal(false);
   };
 
-  const handleDeleteTest = (id) => setTests((prev) => prev.filter((t) => t.id !== id));
+  const handleDeleteTest = (id) =>
+    setTests((prev) => prev.filter((t) => t.id !== id));
 
   return (
     <Box className="p-6 bg-gray-50 min-h-screen">
       {loading ? (
         <Box
           sx={{
-            display: "flex",
-            flexDirection: "column",
-            justifyContent: "center",
-            alignItems: "center",
-            height: "80vh",
+            display: 'flex',
+            flexDirection: 'column',
+            justifyContent: 'center',
+            alignItems: 'center',
+            height: '80vh',
             gap: 2,
           }}
         >
-          <CircularProgress size={60} thickness={4} sx={{ color: "green" }} />
-          <Typography variant="h6" sx={{ mt: 2, color: "gray" }}>
+          <CircularProgress size={60} thickness={4} sx={{ color: 'green' }} />
+          <Typography variant="h6" sx={{ mt: 2, color: 'gray' }}>
             Loading Tests...
           </Typography>
         </Box>
       ) : (
         <>
           {/* Header */}
-          <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
+          <Box
+            display="flex"
+            justifyContent="space-between"
+            alignItems="center"
+            mb={2}
+          >
             <Breadcrumbs />
             <Typography variant="h6" fontWeight="bold">
               Tests
@@ -163,12 +189,19 @@ const handleUpdate=()=>{
               variant="outlined"
               color="primary"
               startIcon={<AddIcon />}
-              sx={{ borderRadius: "50px", "&:hover": { backgroundColor: "#e3f2ff" } }}
+              sx={{
+                borderRadius: '50px',
+                '&:hover': { backgroundColor: '#e3f2ff' },
+              }}
               onClick={handleMenuOpen}
             >
               Create
             </Button>
-            <Menu anchorEl={anchorEl} open={Boolean(anchorEl)} onClose={handleMenuClose}>
+            <Menu
+              anchorEl={anchorEl}
+              open={Boolean(anchorEl)}
+              onClose={handleMenuClose}
+            >
               <MenuItem onClick={handleAddTest}>Add Test</MenuItem>
             </Menu>
           </Box>
@@ -178,68 +211,87 @@ const handleUpdate=()=>{
             <Box
               key={test.id}
               sx={{
-                backgroundColor: "#e9f5e9",
+                backgroundColor: '#e9f5e9',
                 borderRadius: 1,
                 p: 1.5,
-                display: "flex",
-                justifyContent: "space-between",
-                alignItems: "center",
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
                 mb: 1,
               }}
             >
-              <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                 <Typography
-                  sx={{ fontWeight: "bold", cursor: "pointer" }}
+                  sx={{ fontWeight: 'bold', cursor: 'pointer' }}
                   onClick={() =>
-                    navigate("/add-questions", { state: { testName: test.title, instructions: test.description ,id:test.id} })
+                    navigate('/add-questions', {
+                      state: {
+                        testName: test.title,
+                        instructions: test.description,
+                        id: test.id,
+                        startDate:test.start_date
+                      },
+                    })
                   }
                 >
                   {test.title}
                 </Typography>
-                {test.allocated_group_count !==0 && (
-                                    <Box
-                                      component="span"
-                                      sx={{
-                                        background: "#d4a5d4",
-                                        px: 1,
-                                        py: 0.3,
-                                        borderRadius: 1,
-                                        fontSize: "0.8rem",
-                                      }}
-                                    >
-                                      Alloted
-                                    </Box>
-                                  )}
+                {test.allocated_group_count !== 0 && (
+                  <Box
+                    component="span"
+                    sx={{
+                      background: '#d4a5d4',
+                      px: 1,
+                      py: 0.3,
+                      borderRadius: 1,
+                      fontSize: '0.8rem',
+                    }}
+                  >
+                    Alloted
+                  </Box>
+                )}
               </Box>
 
-              <Box sx={{ display: "flex", gap: 1 }}>
-              {
-                                  test.allocated_group_count ===0 &&(<>
-                                  <Button
-                                  size="small"
-                                  sx={{ color: "green" }}
-                                   onClick={() => {
-                  setSelectedTest(test.id); // store the test object
-                  setOpenAllotModal(true);
-                }}
-                                >
-                                  Allot Test
-                                </Button>
-                                  </>)
-                                }
-                <Button size="small" sx={{ color: "green" }} onClick={() => handleEditTest(test)}>
-                  Edit
-                </Button>
-                <Button size="small" sx={{ color: "green" }} onClick={() => handleDeleteTest(test.id)}>
+              <Box sx={{ display: 'flex', gap: 1 }}>
+                {test.allocated_group_count === 0 && (
+                  <>
+                    <Button
+                      size="small"
+                      sx={{ color: 'green' }}
+                      onClick={() => {
+                        setSelectedTest(test.id); // store the test object
+                        setOpenAllotModal(true);
+                      }}
+                    >
+                      Allot Test
+                    </Button>
+                  </>
+                )}
+               {!isRestricted(test.start_date) && (
+  <Button
+    size="small"
+    sx={{ color: 'green' }}
+    onClick={() => handleEditTest(test)}
+  >
+    Edit
+  </Button>
+)}
+
+                {/* <Button size="small" sx={{ color: "green" }} onClick={() => handleDeleteTest(test.id)}>
                   Delete
-                </Button>
+                </Button> */}
               </Box>
             </Box>
           ))}
 
           {/* Create / Edit Test Modal */}
-          <Dialog open={openModal} onClose={() => setOpenModal(false)} maxWidth="sm" fullWidth>
-            <DialogTitle>{isEditing ? "Edit Test" : "Add Test"}</DialogTitle>
+          <Dialog
+            open={openModal}
+            onClose={() => setOpenModal(false)}
+            maxWidth="sm"
+            fullWidth
+          >
+            <DialogTitle>{isEditing ? 'Edit Test' : 'Add Test'}</DialogTitle>
             <DialogContent>
               <TextField
                 autoFocus
@@ -247,7 +299,7 @@ const handleUpdate=()=>{
                 label="Test Name"
                 fullWidth
                 value={name}
-                onChange={(e) => setName(e.target.value.replace(/"/g, ""))}
+                onChange={(e) => setName(e.target.value.replace(/"/g, ''))}
               />
               <TextField
                 margin="dense"
@@ -256,26 +308,32 @@ const handleUpdate=()=>{
                 multiline
                 rows={8}
                 value={instructions}
-                onChange={(e) => setInstructions(e.target.value.replace(/"/g, ""))}
+                onChange={(e) =>
+                  setInstructions(e.target.value.replace(/"/g, ''))
+                }
                 sx={{ mt: 2 }}
               />
             </DialogContent>
             <DialogActions>
               <Button onClick={() => setOpenModal(false)}>Cancel</Button>
-              <Button onClick={handleSave} variant="contained" disabled={!name.trim()}>
+              <Button
+                onClick={handleSave}
+                variant="contained"
+                disabled={!name.trim()}
+              >
                 Save
               </Button>
             </DialogActions>
           </Dialog>
 
           {/* Allot Modal */}
-          
-                <AllotTestModal
-                  open={openAllotModal}
-                  onClose={() => setOpenAllotModal(false)}
-                  onSubmit={handleAllotTest}
-                  selectedTest={selectedTest}
-                />
+
+          <AllotTestModal
+            open={openAllotModal}
+            onClose={() => setOpenAllotModal(false)}
+            onSubmit={handleAllotTest}
+            selectedTest={selectedTest}
+          />
         </>
       )}
     </Box>

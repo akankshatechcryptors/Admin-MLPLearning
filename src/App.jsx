@@ -17,10 +17,12 @@ import TestSummary from './pages/TestSummary'
 import Admin from './pages/Admins'
 import TestList  from './components/TestCards'
 import TestQuestions from './pages/TestQuestions'
+import AdminDashboard from './pages/Dashboard';
 function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [email, setEmail] = useState('');
   const [name, setName] = useState('');
+  const [type,setType]=useState('')
   const [user, setUser] = useState('');
   const [token, setToken] = useState('');
   const [loading, setLoading] = useState(true); // ⏳ Important!
@@ -32,6 +34,7 @@ function App() {
       setName(user.name);
       setIsLoggedIn(true);
       setUser(user.id);
+      setType(user.type);
       setToken(user.token);
     }
     setLoading(false); // ✅ Finish loading after checking localStorage
@@ -43,6 +46,7 @@ function App() {
       localStorage.setItem('user', JSON.stringify(newUser));
       setEmail(newUser.email);
       setName(newUser.fullname);
+      setType(newUser.type);
       setIsLoggedIn(true);
       setUser(newUser.id);
       setToken(newUser.token);
@@ -52,13 +56,15 @@ function App() {
 
   const signout = () => {
     localStorage.removeItem('user');
+    localStorage.clear()
     setEmail('');
     setUser('');
     setName('');
+    setType('')
     setIsLoggedIn(false);
   };
 
-  const value = { email, user, isLoggedIn, token, signin, signout };
+  const value = { email, user, isLoggedIn, token,type, signin, signout };
 
   const router = createBrowserRouter(
     createRoutesFromElements(
@@ -73,6 +79,7 @@ function App() {
           }
         >
           <Route index element={<Home />} />
+          <Route path='dashboard' element={<AdminDashboard/>}/>
           <Route path="groups" element={<Users />} />
           <Route path="tests" element={<Test/>} />
           <Route path="tests/:folderName" element={<TestList/>}/>

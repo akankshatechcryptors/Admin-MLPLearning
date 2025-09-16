@@ -13,8 +13,6 @@ import {
   AccordionDetails,
   IconButton,
   Checkbox,
-  FormControlLabel,
-  RadioGroup,
   Radio,
 } from '@mui/material';
 import Breadcrumbs from './BreadCrumb';
@@ -38,11 +36,20 @@ import {
   deleteSections,
   deleteQuestion
 } from '../common/api';
+
 export default function TestSections() {
   const location = useLocation();
   const testName = location.state?.testName || '';
   const testId = location.state?.id || '';
-  const[update,setUpdate]=useState(false)
+  const dateStart = location.state?.startDate || '';
+  const [update, setUpdate] = useState(false);
+
+  // check restriction
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const startDate = new Date(dateStart);
+  startDate.setHours(0, 0, 0, 0);
+  const restricted = startDate <= today;
 
   // Sections state
   const [sections, setSections] = useState([]);
@@ -52,9 +59,11 @@ export default function TestSections() {
   const [openSectionModal, setOpenSectionModal] = useState(false);
   const [editingSectionIndex, setEditingSectionIndex] = useState(null);
   const [minMarks, setMinMarks] = useState(1);
+
   // Upload modal
   const [uploadModalOpen, setUploadModalOpen] = useState(false);
   const [selectedSectionId, setSelectedSectionId] = useState(null);
+
   // Editing question state
   const [editIndex, setEditIndex] = useState(null);
   const [editSectionIndex, setEditSectionIndex] = useState(null);
@@ -64,36 +73,20 @@ export default function TestSections() {
   // Delete multiple questions state
   const [deleteMode, setDeleteMode] = useState(null);
   const [selectedQuestions, setSelectedQuestions] = useState([]);
+
   const mapBackendToFrontend = (q) => {
     return {
       id: q.id,
       text: q.question,
-      options: [q.option1, q.option2, q.option3, q.option4, q.option5].filter(
-        Boolean,
-      ),
-      correct: parseInt(q.answer, 10) - 1, // convert from 1-based to 0-based index
+      options: [q.option1, q.option2, q.option3, q.option4, q.option5].filter(Boolean),
+      correct: parseInt(q.answer, 10) - 1,
       marks: q.marks,
       section_id: q.section_id,
     };
   };
 
-  const mapFrontendToBackend = (q) => {
-    return {
-      id: q.id,
-      question: q.text,
-      option1: q.options[0] || '',
-      option2: q.options[1] || '',
-      option3: q.options[2] || '',
-      option4: q.options[3] || '',
-      option5: q.options[4] || '',
-      answer: String(q.correct + 1), // 0-based → 1-based
-      marks: q.marks,
-      section_id: q.section_id,
-    };
-  };
-  const handleUpdate=()=>{
-    setUpdate(!update)
-  }
+  const handleUpdate = () => setUpdate(!update);
+
   const getData = async () => {
     try {
       const res = await getSections({ exam_id: testId });
@@ -106,10 +99,11 @@ export default function TestSections() {
       console.log(error);
     }
   };
-console.log(update)
+
   useEffect(() => {
     getData();
   }, [update]);
+console.log(sectionPdf)
   // Save Section
   const handleSaveSection = async () => {
     if (!sectionName.trim()) return;
@@ -120,32 +114,21 @@ console.log(update)
         ...newSections[editingSectionIndex],
         name: sectionName,
         instruction: sectionInstruction,
-        pdf: sectionPdf
-          ? sectionPdf.name
-          : newSections[editingSectionIndex].pdf,
+        pdf: sectionPdf ? sectionPdf.name : newSections[editingSectionIndex].pdf,
       };
-
-
     } else {
       const formData = new FormData();
       formData.append('exam_id', testId);
       formData.append('title', sectionName);
       formData.append('description', sectionInstruction);
       formData.append('file', sectionPdf);
-
-      // To print all key-value pairs:
-      for (let [key, value] of formData.entries()) {
-        console.log(key, value);
-      }
-      const res = await addSections(formData);
-      console.log(res);
-      
+      const data=await addSections(formData);
+      //console.log(data)
     }
     toast.success('Section Created Successfully');
-
     setSections(newSections);
     handleCloseSectionModal();
-    handleUpdate()
+    handleUpdate();
   };
 
   const handleCloseSectionModal = () => {
@@ -172,13 +155,13 @@ console.log(update)
       options: ['Option 1', ' Option 2', ' Option 3', 'Option 4'],
       correct: 2,
       marks: 1,
-      section_id: sections[sectionIndex].id, // required for API
+      section_id: sections[sectionIndex].id,
     };
     setEditSectionIndex(sectionIndex);
-    setEditIndex(null); // it's a new question
-    setEditData(newQ); // open modal with template
+    setEditIndex(null);
+    setEditData(newQ);
   };
-  // Copy Question
+
   const handleCopyQuestion = (sectionIndex, qIndex) => {
     const orig = sections[sectionIndex].questions[qIndex];
     const copyQ = {
@@ -189,89 +172,70 @@ console.log(update)
       section_id: sections[sectionIndex].id,
     };
     setEditSectionIndex(sectionIndex);
-    setEditIndex(null); // treat as new
+    setEditIndex(null);
     setEditData(copyQ);
   };
 
-  // Delete Question
   const handleDeleteQuestion = async (sectionIndex, qIndex) => {
-  const questionId = sections[sectionIndex].questions[qIndex].id;
-  try {
-    await deleteQuestion({ id: questionId }); // API call
-    toast.success('Question deleted successfully');
-    const newSections = [...sections];
-    newSections[sectionIndex].questions.splice(qIndex, 1);
-    setSections(newSections);
-  } catch (err) {
-    console.error(err);
-    toast.error('Failed to delete question');
-  }
-};
-const handleDeleteSection = async (sectionId) => {
-  try {
-    const res=await deleteSections({ section_id: sectionId }); // call API
-    if(!res.data.error){
- toast.success('Section deleted successfully');
-    handleUpdate(); // refresh sections
+    const questionId = sections[sectionIndex].questions[qIndex].id;
+    try {
+      await deleteQuestion({ id: questionId });
+      toast.success('Question deleted successfully');
+      const newSections = [...sections];
+      newSections[sectionIndex].questions.splice(qIndex, 1);
+      setSections(newSections);
+    } catch (err) {
+      console.error(err);
+      toast.error('Failed to delete question');
     }
-   else{
-    toast.error(res.data.message);
-   }
-  } catch (err) {
-    console.error(err);
-    toast.error('Failed to delete section');
-  }
-};
+  };
 
-  // Delete Selected
- const handleDeleteSelectedQuestions = async () => {
-  if (deleteMode === null || selectedQuestions.length === 0) return;
-  try {
-    for (let qId of selectedQuestions) {
-      await deleteQuestion({ id: qId });
+  const handleDeleteSection = async (sectionId) => {
+    try {
+      const res = await deleteSections({ section_id: sectionId });
+      if (!res.data.error) {
+        toast.success('Section deleted successfully');
+        handleUpdate();
+      } else {
+        toast.error(res.data.message);
+      }
+    } catch (err) {
+      console.error(err);
+      toast.error('Failed to delete section');
     }
-    toast.success('Selected questions deleted successfully');
-    handleUpdate(); // refresh sections
-    setDeleteMode(null);
-    setSelectedQuestions([]);
-  } catch (err) {
-    console.error(err);
-    toast.error('Failed to delete selected questions');
-  }
-};
+  };
 
+  const handleDeleteSelectedQuestions = async () => {
+    if (deleteMode === null || selectedQuestions.length === 0) return;
+    try {
+      for (let qId of selectedQuestions) {
+        await deleteQuestion({ id: qId });
+      }
+      toast.success('Selected questions deleted successfully');
+      handleUpdate();
+      setDeleteMode(null);
+      setSelectedQuestions([]);
+    } catch (err) {
+      console.error(err);
+      toast.error('Failed to delete selected questions');
+    }
+  };
 
-  // Open Edit
   const handleEditOpen = (sectionIndex, qIndex) => {
     setEditSectionIndex(sectionIndex);
     setEditIndex(qIndex);
     setEditData({ ...sections[sectionIndex].questions[qIndex] });
   };
-  // Save Edit
-  const formatQuestionPayload = (q) => {
-    return {
-      question: q.text,
-      option1: q.options[0] || '',
-      option2: q.options[1] || '',
-      option3: q.options[2] || '',
-      option4: q.options[3] || '',
-      option5: q.options[4] || '',
-      answer: String(q.correct + 1), // convert 0-based to 1-based index
-      marks: q.marks,
-      section_id: q.section_id,
-    };
-  };
+
   const handleUploadQuestions = async (file) => {
     if (!selectedSectionId) return;
     try {
       const formData = new FormData();
       formData.append('section_id', selectedSectionId);
       formData.append('file', file);
-
-      const res = await uploadQuestions(formData);
-      console.log(res);
+      await uploadQuestions(formData);
       toast.success('Questions uploaded successfully');
-      handleUpdate()
+      handleUpdate();
     } catch (err) {
       console.error(err);
     } finally {
@@ -279,20 +243,27 @@ const handleDeleteSection = async (sectionId) => {
       setSelectedSectionId(null);
     }
   };
+
   const handleEditSave = async () => {
     try {
-      const payload = formatQuestionPayload(editData);
+      const payload = {
+        question: editData.text,
+        option1: editData.options[0] || '',
+        option2: editData.options[1] || '',
+        option3: editData.options[2] || '',
+        option4: editData.options[3] || '',
+        option5: editData.options[4] || '',
+        answer: String(editData.correct + 1),
+        marks: editData.marks,
+        section_id: editData.section_id,
+      };
       if (editIndex === null) {
-        // Add new question
-        const res = await addQuestions(payload);
-        console.log(res);
+        await addQuestions(payload);
         toast.success('Question added successfully');
       } else {
-        // Update existing question
         await editQuestion({ id: editData.id, ...payload });
         toast.success('Question updated successfully');
       }
-
       getData();
       handleEditClose();
     } catch (err) {
@@ -306,6 +277,7 @@ const handleDeleteSection = async (sectionId) => {
     setEditSectionIndex(null);
     setEditData(null);
   };
+
   const handleMinMarksSave = async () => {
     try {
       await udpateMinScore({ exam_id: testId, min_marks: minMarks });
@@ -322,37 +294,50 @@ const handleDeleteSection = async (sectionId) => {
       {/* Header */}
       <Box className="flex justify-between items-center mb-6 text-center">
         <Breadcrumbs />
-        <Typography variant="h5" fontWeight="bold">
+        <Typography variant="h5" fontWeight="bold" textAlign="center">
           {testName}
         </Typography>
-        <Button
-          variant="outlined"
-          sx={{
-            bgcolor: 'transparent',
-            '&:hover': { bgcolor: '#0077B6', color: 'white' },
-            color: '#0077B6',
-            textTransform: 'none',
-            borderRadius: '25px',
-            width: '15%',
-          }}
-          onClick={() => setOpenMinMarksModal(true)}
-        >
-          Add Minimum Marks
-        </Button>
-        <Button
-          variant="outlined"
-          sx={{
-            bgcolor: 'transparent',
-            '&:hover': { bgcolor: '#0077B6', color: 'white' },
-            color: '#0077B6',
-            textTransform: 'none',
-            borderRadius: '25px',
-            width: '10%',
-          }}
-          onClick={() => setOpenSectionModal(true)}
-        >
-          Add Section
-        </Button>
+{restricted &&(<>
+<div>
+  
+</div>
+<div>
+  
+</div>
+
+</>)}
+        {!restricted && (
+          <>
+            <Button
+              variant="outlined"
+              sx={{
+                bgcolor: 'transparent',
+                '&:hover': { bgcolor: '#0077B6', color: 'white' },
+                color: '#0077B6',
+                textTransform: 'none',
+                borderRadius: '25px',
+                width: '15%',
+              }}
+              onClick={() => setOpenMinMarksModal(true)}
+            >
+              Add Minimum Marks
+            </Button>
+            <Button
+              variant="outlined"
+              sx={{
+                bgcolor: 'transparent',
+                '&:hover': { bgcolor: '#0077B6', color: 'white' },
+                color: '#0077B6',
+                textTransform: 'none',
+                borderRadius: '25px',
+                width: '10%',
+              }}
+              onClick={() => setOpenSectionModal(true)}
+            >
+              Add Section
+            </Button>
+          </>
+        )}
       </Box>
 
       {/* Sections */}
@@ -372,92 +357,82 @@ const handleDeleteSection = async (sectionId) => {
                 <Typography fontWeight="bold">{sec.title}</Typography>
               </AccordionSummary>
 
-              {/* Put actions OUTSIDE AccordionSummary */}
-              <Box display="flex" gap={1} pl={2} pt={1}>
-                <IconButton
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    handleEditSection(secIndex);
-                  }}
-                >
-                  <EditIcon color="primary" sx={{ width: '18px' }} />
-                </IconButton>
-
-                <IconButton
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    handleDeleteSection(sec.id);
-                  }}
-                >
-                  <DeleteIcon color="error" sx={{ width: '18px' }} />
-                </IconButton>
-              </Box>
+              {!restricted && (
+                <Box display="flex" gap={1} pl={2} pt={1}>
+                  <IconButton onClick={(e) => { e.stopPropagation(); handleEditSection(secIndex); }}>
+                    <EditIcon color="primary" sx={{ width: '18px' }} />
+                  </IconButton>
+                  <IconButton onClick={(e) => { e.stopPropagation(); handleDeleteSection(sec.id); }}>
+                    <DeleteIcon color="error" sx={{ width: '18px' }} />
+                  </IconButton>
+                </Box>
+              )}
 
               <AccordionDetails sx={{ bgcolor: 'white' }}>
-                {/* Action buttons ON TOP */}
-                {deleteMode === secIndex ? (
-                  <Box display="flex" justifyContent="center" gap={2} mb={2}>
-                    <Button
-                      variant="outlined"
-                      color="secondary"
-                      onClick={() => {
-                        setDeleteMode(null);
-                        setSelectedQuestions([]);
-                      }}
-                    >
-                      Cancel
-                    </Button>
-                    <Button
-                      variant="contained"
-                      color="error"
-                      onClick={handleDeleteSelectedQuestions}
-                    >
-                      Delete Selected
-                    </Button>
-                  </Box>
-                ) : (
-                  <Box display="flex" justifyContent="center" gap={2} mb={2}>
-                    <Button
-                      variant="contained"
-                      sx={{
-                        bgcolor: '#0077B6',
-                        '&:hover': { bgcolor: '#0077C4' },
-                        borderRadius: '20px',
-                        textTransform: 'none',
-                      }}
-                      startIcon={<CloudUploadIcon />}
-                      onClick={() => {
-                        setSelectedSectionId(sec.id);
-                        setUploadModalOpen(true);
-                      }}
-                    >
-                      Upload
-                    </Button>
-
-                    <Button
-                      variant="outlined"
-                      sx={{
-                        borderColor: '#0077B6',
-                        color: '#0077B6',
-                        borderRadius: '20px',
-                        textTransform: 'none',
-                        '&:hover': { bgcolor: '#f0f8ff' },
-                      }}
-                      startIcon={<AddCircleOutlineIcon />}
-                      onClick={() => handleAddQuestion(secIndex)}
-                    >
-                      Create
-                    </Button>
-
-                    <Button
-                      variant="outlined"
-                      color="error"
-                      startIcon={<DeleteIcon />}
-                      onClick={() => setDeleteMode(secIndex)}
-                    >
-                      Delete
-                    </Button>
-                  </Box>
+                {/* Section Actions */}
+                {!restricted && (
+                  deleteMode === secIndex ? (
+                    <Box display="flex" justifyContent="center" gap={2} mb={2}>
+                      <Button
+                        variant="outlined"
+                        color="secondary"
+                        onClick={() => {
+                          setDeleteMode(null);
+                          setSelectedQuestions([]);
+                        }}
+                      >
+                        Cancel
+                      </Button>
+                      <Button
+                        variant="contained"
+                        color="error"
+                        onClick={handleDeleteSelectedQuestions}
+                      >
+                        Delete Selected
+                      </Button>
+                    </Box>
+                  ) : (
+                    <Box display="flex" justifyContent="center" gap={2} mb={2}>
+                      <Button
+                        variant="contained"
+                        sx={{
+                          bgcolor: '#0077B6',
+                          '&:hover': { bgcolor: '#0077C4' },
+                          borderRadius: '20px',
+                          textTransform: 'none',
+                        }}
+                        startIcon={<CloudUploadIcon />}
+                        onClick={() => {
+                          setSelectedSectionId(sec.id);
+                          setUploadModalOpen(true);
+                        }}
+                      >
+                        Upload
+                      </Button>
+                      <Button
+                        variant="outlined"
+                        sx={{
+                          borderColor: '#0077B6',
+                          color: '#0077B6',
+                          borderRadius: '20px',
+                          textTransform: 'none',
+                          '&:hover': { bgcolor: '#f0f8ff' },
+                        }}
+                        startIcon={<AddCircleOutlineIcon />}
+                        onClick={() => handleAddQuestion(secIndex)}
+                      >
+                        Create
+                      </Button>
+                      <Button
+                        variant="outlined"
+                        color="error"
+                        startIcon={<DeleteIcon />}
+                        onClick={() => setDeleteMode(secIndex)}
+                      >
+                        Delete
+                      </Button>
+                    </Box>
+                  )
                 )}
 
                 {/* Questions */}
@@ -475,19 +450,14 @@ const handleDeleteSection = async (sectionId) => {
                         gap: 2,
                       }}
                     >
-                      {deleteMode === secIndex && (
+                      {deleteMode === secIndex && !restricted && (
                         <Checkbox
                           checked={selectedQuestions.includes(q.id)}
                           onChange={(e) => {
                             if (e.target.checked) {
-                              setSelectedQuestions([
-                                ...selectedQuestions,
-                                q.id,
-                              ]);
+                              setSelectedQuestions([...selectedQuestions, q.id]);
                             } else {
-                              setSelectedQuestions(
-                                selectedQuestions.filter((id) => id !== q.id),
-                              );
+                              setSelectedQuestions(selectedQuestions.filter((id) => id !== q.id));
                             }
                           }}
                         />
@@ -516,34 +486,22 @@ const handleDeleteSection = async (sectionId) => {
                                 type="radio"
                                 checked={i === q.correct}
                                 readOnly
+                                disabled
                               />
                               <Typography>{opt}</Typography>
                             </Box>
                           ))}
                         </Box>
 
-                        {deleteMode !== secIndex && (
+                        {!restricted && deleteMode !== secIndex && (
                           <Box display="flex" gap={2} mt={1}>
-                            <IconButton
-                              size="small"
-                              onClick={() => handleEditOpen(secIndex, qIndex)}
-                            >
+                            <IconButton size="small" onClick={() => handleEditOpen(secIndex, qIndex)}>
                               <EditIcon color="primary" />
                             </IconButton>
-                            <IconButton
-                              size="small"
-                              onClick={() =>
-                                handleCopyQuestion(secIndex, qIndex)
-                              }
-                            >
+                            <IconButton size="small" onClick={() => handleCopyQuestion(secIndex, qIndex)}>
                               <ContentCopyIcon color="success" />
                             </IconButton>
-                            <IconButton
-                              size="small"
-                              onClick={() =>
-                                handleDeleteQuestion(secIndex, qIndex)
-                              }
-                            >
+                            <IconButton size="small" onClick={() => handleDeleteQuestion(secIndex, qIndex)}>
                               <DeleteIcon color="error" />
                             </IconButton>
                           </Box>
@@ -552,9 +510,7 @@ const handleDeleteSection = async (sectionId) => {
                     </Box>
                   ))
                 ) : (
-                  <Typography color="textSecondary">
-                    No questions yet. Add some!
-                  </Typography>
+                  <Typography color="textSecondary">No questions yet. Add some!</Typography>
                 )}
               </AccordionDetails>
             </Accordion>
@@ -564,32 +520,28 @@ const handleDeleteSection = async (sectionId) => {
             <Typography variant="h6" fontWeight="bold" gutterBottom>
               Please create sections
             </Typography>
-            <Button
-              variant="contained"
-              onClick={() => setOpenSectionModal(true)}
-              sx={{
-                bgcolor: '#0077B6',
-                '&:hover': { bgcolor: '#0077C4' },
-                mt: 2,
-                borderRadius: '20px',
-              }}
-              startIcon={<AddCircleOutlineIcon />}
-            >
-              Add Section
-            </Button>
+            {!restricted && (
+              <Button
+                variant="contained"
+                onClick={() => setOpenSectionModal(true)}
+                sx={{
+                  bgcolor: '#0077B6',
+                  '&:hover': { bgcolor: '#0077C4' },
+                  mt: 2,
+                  borderRadius: '20px',
+                }}
+                startIcon={<AddCircleOutlineIcon />}
+              >
+                Add Section
+              </Button>
+            )}
           </Box>
         )}
       </Box>
 
       {/* Section Modal */}
-      <Dialog
-        open={openSectionModal}
-        onClose={handleCloseSectionModal}
-        fullWidth
-      >
-        <DialogTitle>
-          {editingSectionIndex !== null ? 'Edit Section' : 'Add Section'}
-        </DialogTitle>
+      <Dialog open={openSectionModal} onClose={handleCloseSectionModal} fullWidth>
+        <DialogTitle>{editingSectionIndex !== null ? 'Edit Section' : 'Add Section'}</DialogTitle>
         <DialogContent>
           <TextField
             label="Section Name"
@@ -641,73 +593,60 @@ const handleDeleteSection = async (sectionId) => {
         <DialogTitle>Edit Question</DialogTitle>
         <DialogContent>
           <TextField
-            label="Question Text"
+            label="Question"
             fullWidth
             margin="normal"
             value={editData?.text || ''}
             onChange={(e) => setEditData({ ...editData, text: e.target.value })}
           />
-
-          <Typography mt={2}>Options (select correct answer):</Typography>
           {editData?.options?.map((opt, i) => (
-            <Box
-              key={i}
-              sx={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: 1,
-                p: 1,
-                borderRadius: 1,
-                mb: 1,
-                bgcolor: 'transparent',
-              }}
-            >
+            <Box key={i} display="flex" gap={1} alignItems="center" mt={1}>
               <Radio
-                checked={editData?.correct === i}
+                checked={i === editData.correct}
                 onChange={() => setEditData({ ...editData, correct: i })}
               />
               <TextField
                 label={`Option ${i + 1}`}
                 fullWidth
-                margin="dense"
                 value={opt}
                 onChange={(e) => {
-                  const newOpts = [...editData.options];
-                  newOpts[i] = e.target.value;
-                  setEditData({ ...editData, options: newOpts });
+                  const newOptions = [...editData.options];
+                  newOptions[i] = e.target.value;
+                  setEditData({ ...editData, options: newOptions });
                 }}
               />
             </Box>
           ))}
-
           <TextField
             label="Marks"
             type="number"
             fullWidth
-            margin="dense"
+            margin="normal"
             value={editData?.marks || 1}
-            onChange={(e) =>
-              setEditData({ ...editData, marks: Number(e.target.value) })
-            }
+            onChange={(e) => setEditData({ ...editData, marks: Number(e.target.value) })}
           />
         </DialogContent>
         <DialogActions>
           <Button onClick={handleEditClose}>Cancel</Button>
-          <Button variant="contained" onClick={handleEditSave}>
+          <Button onClick={handleEditSave} variant="contained">
             Save
           </Button>
         </DialogActions>
       </Dialog>
-      {/* Minimum Marks Modal */}
-      <Dialog
-        open={openMinMarksModal}
-        onClose={() => setOpenMinMarksModal(false)}
-        fullWidth
-      >
-        <DialogTitle>Set Minimum Marks</DialogTitle>
+
+      {/* Upload Modal */}
+      <UploadExcelModal
+        open={uploadModalOpen}
+        onClose={() => setUploadModalOpen(false)}
+        onUpload={handleUploadQuestions}
+      />
+
+      {/* Min Marks Modal */}
+      <Dialog open={openMinMarksModal} onClose={() => setOpenMinMarksModal(false)} fullWidth>
+        <DialogTitle>Add Minimum Marks</DialogTitle>
         <DialogContent>
           <TextField
-            label="Minimum Marks Required to Pass"
+            label="Minimum Marks"
             type="number"
             fullWidth
             margin="normal"
@@ -717,25 +656,11 @@ const handleDeleteSection = async (sectionId) => {
         </DialogContent>
         <DialogActions>
           <Button onClick={() => setOpenMinMarksModal(false)}>Cancel</Button>
-          <Button
-            variant="contained"
-            onClick={handleMinMarksSave}
-          >
+          <Button onClick={handleMinMarksSave} variant="contained">
             Save
           </Button>
         </DialogActions>
       </Dialog>
-
-      {/* Upload Excel */}
-      <UploadExcelModal
-        open={uploadModalOpen}
-        onClose={() => {
-          setUploadModalOpen(false);
-          setSelectedSectionId(null);
-        }}
-        onUpload={handleUploadQuestions}
-        sectionId={selectedSectionId} // pass it here
-      />
     </Box>
   );
 }

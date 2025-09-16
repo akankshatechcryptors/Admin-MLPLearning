@@ -48,8 +48,8 @@ export default function CreateQuestionsPanel({ onAddMcq }) {
   };
 
   const handleUploadExcel = (file, section) => {
-    console.log("Uploaded File:", file);
-    console.log("For Section:", section);
+    //console.log("Uploaded File:", file);
+    //console.log("For Section:", section);
     setOpenUploadModal(false);
   };
 
