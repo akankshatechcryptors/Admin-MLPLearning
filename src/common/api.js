@@ -1,10 +1,14 @@
 import axios from 'axios'
 const api = axios.create({
-  //baseURL: "http://localhost:7000/"
-  baseURL:"http://idsadossier2025-mindslablearning.ap-south-1.elasticbeanstalk.com/"
+  baseURL: "http://localhost:7000/",
+  //baseURL:"https://apis.idsadossier2025.mindslablearning.com/"
 })
 // 🔑 Interceptor to always attach token from localStorage
 // 🔑 Request interceptor to attach token
+const publicApi = axios.create({
+  baseURL: "http://localhost:7000/"
+  //baseURL:"https://apis.idsadossier2025.mindslablearning.com/"
+})
 api.interceptors.request.use(
   (config) => {
     const user = localStorage.getItem("user");
@@ -23,7 +27,7 @@ api.interceptors.request.use(
 api.interceptors.response.use(
   (response) => response,
   (error) => {
-    if (error.response?.status === 403 ||error.response?.status === 401) {
+    if (error.response?.status === 403 ||error.response?.status === 401||error.response?.status === 404) {
       // remove user from localStorage
       localStorage.removeItem('user');
       // optionally reload the page or redirect to login
@@ -39,7 +43,7 @@ export const editUser=(data)=>{
   return api.post("users/edit_user",data)
 }
 export const login = (data) => {
-  return axios.post('http://idsadossier2025-mindslablearning.ap-south-1.elasticbeanstalk.com/admins/login', data)
+  return publicApi.post('admins/login', data)
 }
 export const getUsers = (id) => {
   return api.post("users/get_users", id)

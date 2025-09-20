@@ -13,9 +13,10 @@ import {
   Select,
   Checkbox,
   ListItemText,
+  Typography,
 } from "@mui/material";
 import { getGroups } from "../common/api";
-const AllotTestModal = ({ open, onClose, onSubmit ,selectedTest}) => {
+const AllotTestModal = ({ open, onClose, onSubmit ,selectedTest,error,disable}) => {
   const [Groups,setGroups]=useState([])
   
   const [formData, setFormData] = useState({
@@ -64,11 +65,14 @@ const AllotTestModal = ({ open, onClose, onSubmit ,selectedTest}) => {
       <DialogTitle>Allot test</DialogTitle>
       <DialogContent>
         {/* Groups */}
+              {error!==null && <Typography variant="p" textAlign="center" color="error">{error}</Typography>}
+
         <FormControl fullWidth margin="dense">
           <InputLabel>Groups*</InputLabel>
          <Select
   multiple
   value={formData.group_ids}
+  disabled={disable}
   onChange={(e) => handleChange("group_ids", e.target.value)}
   renderValue={(selected) =>
     Groups.filter((g) => selected.includes(g.id)).map((g) => g.title).join(", ")
@@ -92,6 +96,7 @@ const AllotTestModal = ({ open, onClose, onSubmit ,selectedTest}) => {
           type="date"
           fullWidth
           margin="dense"
+          disabled={disable}
           InputLabelProps={{ shrink: true }}
           value={formData.start_date}
           onChange={(e) => handleChange("start_date", e.target.value)}
@@ -101,6 +106,7 @@ const AllotTestModal = ({ open, onClose, onSubmit ,selectedTest}) => {
           type="date"
           fullWidth
           margin="dense"
+          disabled={disable}
           InputLabelProps={{ shrink: true }}
           value={formData.end_date}
           onChange={(e) => handleChange("end_date", e.target.value)}
@@ -111,6 +117,7 @@ const AllotTestModal = ({ open, onClose, onSubmit ,selectedTest}) => {
         <Button
           onClick={handleSave}
           variant="contained"
+          disabled={disable}
           sx={{ backgroundColor: "#4CAF50" }}
         >
           Allot Test

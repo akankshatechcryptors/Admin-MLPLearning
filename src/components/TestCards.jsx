@@ -49,6 +49,8 @@ const TestCards = () => {
   const [loading, setLoading] = useState(false);
   const [update, setUpdate] = useState(false);
   const [selectedTest, setSelectedTest] = useState(null);
+  const[error,setError]=useState('')
+  const[disable,setDisable]=useState(false)
   //console.log(selectedTest)
 
 
@@ -85,7 +87,7 @@ function isRestricted(dateStart) {
     try {
       const data = { folder_id: folder_id, group_id: '' };
       const res = await getExam(data);
-      //console.log(res.data.groups);
+      console.log(res.data.groups);
       setTests(res.data.groups);
     } catch (error) {
       console.error(error);
@@ -100,7 +102,27 @@ function isRestricted(dateStart) {
   // Menu handlers
   const handleMenuOpen = (event) => setAnchorEl(event.currentTarget);
   const handleMenuClose = () => setAnchorEl(null);
+const handleSelectTest=(test)=>{
+setSelectedTest(test.id)
+setOpenAllotModal(true)
+if(test.total_questions<=0 && test.min_marks<=0){
+setError("Please Add Questions/Sections  and Minimum Marks Test before Alloting test")
+setDisable(true)
+}
 
+else if(test.total_questions<=0){
+setError("Please Add Questions/Sections in Test before Alloting test")
+setDisable(true)
+}
+else if(test.min_marks<=0){
+  setError("Please Add Minimum Marks For Test")
+  setDisable(true)
+}
+else{
+  setError(null)
+  setDisable(false)
+}
+}
   const handleAddTest = () => {
     setIsEditing(false);
     setName('');
@@ -258,10 +280,7 @@ function isRestricted(dateStart) {
                     <Button
                       size="small"
                       sx={{ color: 'green' }}
-                      onClick={() => {
-                        setSelectedTest(test.id); // store the test object
-                        setOpenAllotModal(true);
-                      }}
+                      onClick={()=>handleSelectTest(test)}
                     >
                       Allot Test
                     </Button>
@@ -333,6 +352,8 @@ function isRestricted(dateStart) {
             onClose={() => setOpenAllotModal(false)}
             onSubmit={handleAllotTest}
             selectedTest={selectedTest}
+            error={error}
+            disable={disable}
           />
         </>
       )}
