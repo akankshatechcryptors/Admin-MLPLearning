@@ -101,7 +101,8 @@ export default function TestPage() {
 
   const handleAddTest = async (name, desc) => {
     try {
-      await addExam({ title: name, description: desc });
+      const res=await addExam({ title: name, description: desc });
+      console.log(res)
       handleUpdate();
     } catch (error) {
       console.error(error);
