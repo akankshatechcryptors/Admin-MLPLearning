@@ -102,7 +102,7 @@ If something goes wrong, contact your tutor and communicate the problem.`;
         </Typography>
         <Button
           variant="outlined"
-          color="primary"
+          color="primary" 
           startIcon={<AddIcon />}
           sx={{ borderRadius: '50px', '&:hover': { backgroundColor: '#e3f2ff' } }}
           onClick={handleMenuOpen}

@@ -11,7 +11,6 @@ const Breadcrumbs = () => {
     <MUIBreadcrumbs aria-label="breadcrumb" sx={{ mb: 2 }}>
       <Link component={RouterLink} underline="hover" color="inherit" to="/" className='flex items-center'>
         <HomeIcon fontSize="small" sx={{ mr: 0.5 }} />
-        Home
       </Link>
       {pathnames.map((value, index) => {
         const to = `/${pathnames.slice(0, index + 1).join('/')}`;

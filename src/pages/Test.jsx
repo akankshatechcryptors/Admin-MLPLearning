@@ -26,7 +26,7 @@ import {
   moveFolder,
   allotTest
 } from "../common/api";
-
+import Loading from '../components/Loading'
 export default function TestPage() {
   const [currentFolder, setCurrentFolder] = useState(null);
   const [openAllotModal, setOpenAllotModal] = useState(false);
@@ -166,10 +166,7 @@ const handleEditTest = async (id, newTitle, newDesc) => {
           gap: 2,
         }}
       >
-        <CircularProgress size={60} thickness={4} sx={{ color: "primary" }} />
-        <Typography variant="h6" sx={{ mt: 2, color: "gray" }}>
-          Loading Tests...
-        </Typography>
+        <Loading message={"Loading Tests"}/>
       </Box>
     ):(<>
       <TestFoldersList

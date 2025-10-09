@@ -29,121 +29,134 @@ const PASTEL_COLORS = [
   "#90BE6D",
 ];
 
-// Calculate module-wise average marks
+// Module-wise average
+// Module-wise average for only attempted users (pass/fail)
+// Module-wise average for only passed users, matching sectionId
+// Module-wise pass percentage relative to total users
 const calcTestModules = (test) => {
-  return test.modules.map((mod) => {
-    let total = 0;
-    let count = 0;
-    test.groups.forEach((g) => {
-      g.users.forEach((u) => {
-        if (u.obtained[mod.id] != null) {
-          total += u.obtained[mod.id];
-          count += 1;
+  const totalUsers = test.total_alloted_users || 0;
+
+  return test.sections.map((section) => {
+    let passedUsers = 0;
+
+    (test.groups || []).forEach((group) => {
+      (group.users || []).forEach((user) => {
+        // Check if user passed this section
+        const obtainedForSection = (user.obtained || []).find(
+          (o) => o.sectionId === section.id && o.status === "pass"
+        );
+
+        if (obtainedForSection) {
+          passedUsers += 1;
         }
       });
     });
-    return { name: mod.name, avg: count ? Math.round(total / count) : 0 };
+
+    // Avg = % of users who passed this module
+    const avg = totalUsers ? Math.round((passedUsers / totalUsers) * 100) : 0;
+
+    return {
+      name: section.name,
+      avg,
+      passedUsers,
+      totalUsers,
+      id: section.id,
+    };
   });
 };
 
-// Calculate pass/fail based on total obtained marks
-const passFailData = (users, modules, minMarks) => {
-  const pass = users.filter((u) => {
-    const total = modules.reduce(
-      (sum, m) => sum + (u.obtained[m.id] || 0),
-      0
-    );
-    return total >= minMarks;
-  }).length;
-  const fail = users.length - pass;
+
+
+// Pass/fail calculation
+// Convert user.status to display text
+const getStatusPieData = (users) => {
+  const pass = (users || []).filter(u => u.status === "pass").length;
+  const fail = (users || []).filter(u => u.status === "fail").length;
+  const pending = (users || []).filter(u => !u.status).length;
+
   return [
     { name: "Pass", value: pass },
     { name: "Fail", value: fail },
+    { name: "Pending", value: pending },
   ];
 };
+const getGroupStatusCounts = (users) => {
+  const pass = (users || []).filter(u => u.status === "pass").length;
+  const fail = (users || []).filter(u => u.status === "fail").length;
+  const pending = (users || []).filter(u => !u.status).length; // unattempted
+  return { pass, fail, pending };
+};
+
+
+
+
 
 const TestSummary = ({ test, onGroupSelect }) => {
-  const allUsers = test.groups.flatMap((g) => g.users);
-
+  const allUsers = (test.groups || []).flatMap((g) => g.users || []);
+  console.log(allUsers)
+  const modules = test.sections || [];
+  console.log(test)
   return (
     <Grid container spacing={3}>
-      {/* Module-wise Average Chart */}
-      <Grid item size={{xs:12 ,sm:8}}>
-        <Paper
-          sx={{
-            p: 3,
-            borderRadius: 3,
-            boxShadow: 3,
-            height: "100%",
-          }}
-        >
+      {/* Module-wise Average */}
+      <Grid item size={{sx:12,md:8,lg:8 ,sm:8}}>
+        <Paper sx={{ p: 3, borderRadius: 3, boxShadow: 3, height: "100%" }}>
           <Typography variant="h6" gutterBottom>
             Module-wise Average
           </Typography>
           <ResponsiveContainer width="100%" height={280}>
             <BarChart data={calcTestModules(test)}>
               <XAxis dataKey="name" />
-              <YAxis
-                domain={[0, Math.max(...test.modules.map((m) => m.maxMarks))]}
-              />
+             <YAxis 
+  domain={[
+    0,
+    Math.max(
+      10, // minimum visible height
+      ...modules.map(m => Math.max(m.maxMarks || 0, calcTestModules(test).find(x => x.id === m.id)?.avg || 0))
+    )
+  ]}
+/>
               <Tooltip />
               <Legend />
-              <Bar
-                dataKey="avg"
-                fill={PASTEL_COLORS[0]}
-                radius={[8, 8, 0, 0]}
-              />
+              <Bar dataKey="avg" fill={PASTEL_COLORS[0]} radius={[8, 8, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>
         </Paper>
       </Grid>
 
-      {/* Pass vs Fail Chart */}
-      <Grid item size={{xs:12 ,sm:4}}>
-        <Paper
-          sx={{
-            p: 3,
-            borderRadius: 3,
-            boxShadow: 3,
-            textAlign: "center",
-            height: "100%",
-          }}
-        >
+      {/* Pass vs Fail */}
+      <Grid item size={{sx:12,md:4,lg:4 ,sm:4}}>
+        <Paper sx={{ p: 3, borderRadius: 3, boxShadow: 3, textAlign: "center", height: "100%" }}>
           <Typography variant="h6" gutterBottom>
             Pass vs Fail
           </Typography>
           <ResponsiveContainer width="100%" height={280}>
             <PieChart>
               <Pie
-                data={passFailData(allUsers, test.modules, test.minMarks)}
+                data={getStatusPieData(allUsers)}
                 dataKey="value"
                 nameKey="name"
                 outerRadius={100}
                 label
               >
-                {passFailData(allUsers, test.modules, test.minMarks).map(
-                  (entry, index) => (
-                    <Cell
-                      key={`c-${index}`}
-                      fill={PASTEL_COLORS[index % PASTEL_COLORS.length]}
-                    />
-                  )
-                )}
+                {getStatusPieData(allUsers).map((entry, index) => (
+                  <Cell key={`c-${index}`} fill={PASTEL_COLORS[index % PASTEL_COLORS.length]} />
+                ))}
               </Pie>
             </PieChart>
           </ResponsiveContainer>
         </Paper>
       </Grid>
 
-      {/* Groups Summary */}
-      <Grid item size={{xs:12 ,sm:12 }}>
+      {/* Groups */}
+      <Grid item size={{sx:12,md:12,lg:12 ,sm:12}}>
         <Typography variant="h6" gutterBottom>
           Groups
         </Typography>
         <Divider sx={{ mb: 2 }} />
         <Grid container spacing={2}>
-          {test.groups.map((g, idx) => (
-            <Grid item size={{xs:12 ,sm:3}}key={g.groupName}>
+          {(test.groups || []).map((g) => (
+            <Grid item xs={12} sm={3} key={g.groupName}>
               <Paper
                 sx={{
                   p: 2.5,
@@ -161,28 +174,19 @@ const TestSummary = ({ test, onGroupSelect }) => {
                   <Typography variant="subtitle1" fontWeight="bold">
                     {g.groupName}
                   </Typography>
-                  <Typography
-                    variant="body2"
-                    color="text.secondary"
-                    sx={{ mt: 1 }}
-                  >
-                    Users: {g.users.length}
+                  <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
+                    Users: {(g.users || []).length}
                   </Typography>
                   <Typography variant="body2" color="text.secondary">
-                    Pass / Fail:{" "}
-                    {passFailData(g.users, test.modules, test.minMarks)[0]
-                      .value}{" "}
-                    /{" "}
-                    {passFailData(g.users, test.modules, test.minMarks)[1]
-                      .value}
+                    Pass -{getGroupStatusCounts(g.users).pass} /{" "} 
+                    Fail - {getGroupStatusCounts(g.users).fail} /{" "} 
+                    Pending:{" "} -  {getGroupStatusCounts(g.users).pending}
+  
+ 
+ 
                   </Typography>
                 </Box>
-                <Button
-                  sx={{ mt: 2 }}
-                  size="small"
-                  variant="outlined"
-                  onClick={() => onGroupSelect(g)}
-                >
+                <Button sx={{ mt: 2 }} size="small" variant="outlined" onClick={() => onGroupSelect(g)}>
                   Open Group
                 </Button>
               </Paper>

@@ -294,9 +294,7 @@ console.log(sectionPdf)
       {/* Header */}
       <Box className="flex justify-between items-center mb-6 text-center">
         <Breadcrumbs />
-        <Typography variant="h5" fontWeight="bold" textAlign="center">
-          {testName}
-        </Typography>
+        
 {restricted &&(<>
 <div>
   
@@ -320,7 +318,7 @@ console.log(sectionPdf)
               }}
               onClick={() => setOpenMinMarksModal(true)}
             >
-              Add Minimum Marks
+              Min. Marks
             </Button>
             <Button
               variant="outlined"
@@ -333,13 +331,16 @@ console.log(sectionPdf)
                 width: '10%',
               }}
               onClick={() => setOpenSectionModal(true)}
+              startIcon={<AddCircleOutlineIcon />}
             >
-              Add Section
+              Section
             </Button>
           </>
         )}
       </Box>
-
+<Typography variant="h5" fontWeight="bold" textAlign="center" mb={2}>
+          {testName}
+        </Typography>
       {/* Sections */}
       <Box>
         {sections.length > 0 ? (

@@ -4,35 +4,45 @@ import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, Legend, PieC
 
 const PASTEL_COLORS = ["#A8DADC", "#F4A261", "#E9C46A", "#F6BD60", "#84A59D", "#90BE6D"];
 
-// Calculate module-wise average for a group
-const calcGroupModules = (group, testModules) => {
-  return testModules.map((mod) => {
-    let total = 0;
-    let count = 0;
-    group.users.forEach((u) => {
-      if (u.obtained[mod.id] != null) {
-        total += u.obtained[mod.id];
-        count += 1;
-      }
-    });
-    return { name: mod.name, avg: count ? Math.round(total / count) : 0 };
+// Module-wise average for a single group
+const calcGroupModules = (group, sections) => {
+  return sections.map((section) => {
+    const users = group.users || [];
+    const totalUsers = users.length;
+
+    const passedUsers = users.filter((user) =>
+      (user.obtained || []).some((o) => o.sectionId === section.id && o.status === "pass")
+    ).length;
+
+    const avg = totalUsers ? Math.round((passedUsers / totalUsers) * 100) : 0;
+
+    return {
+      name: section.name,
+      avg,
+      passedUsers,
+      totalUsers,
+      id: section.id,
+    };
   });
 };
 
-// Pass/fail for a group
-const passFailData = (users, testModules, minMarks) => {
-  const pass = users.filter((u) => {
-    const total = testModules.reduce((sum, m) => sum + (u.obtained[m.id] || 0), 0);
-    return total >= minMarks;
-  }).length;
-  const fail = users.length - pass;
+// Pass/Fail/Pending data for pie chart
+const getStatusPieData = (users) => {
+  const pass = (users || []).filter(u => u.status === "pass").length;
+  const fail = (users || []).filter(u => u.status === "fail").length;
+  const pending = (users || []).filter(u => u.status !== "pass" && u.status !== "fail").length;
+
   return [
     { name: "Pass", value: pass },
     { name: "Fail", value: fail },
+    { name: "Pending", value: null },
   ];
 };
 
 const GroupSummary = ({ group, test, onUserSelect, onBack }) => {
+   const modulesData = calcGroupModules(group, test.sections);
+  const pieData = getStatusPieData(group.users);
+  const totalMaxMarks = test.sections.reduce((sum, s) => sum + (s.maxMarks || 0), 0);
   return (
     <Box>
       <Button onClick={onBack} sx={{ mb: 2 }} variant="outlined">← Back to Test</Button>
@@ -47,9 +57,9 @@ const GroupSummary = ({ group, test, onUserSelect, onBack }) => {
               Module-wise Average
             </Typography>
             <ResponsiveContainer width="100%" height={250}>
-              <BarChart data={calcGroupModules(group, test.modules)}>
+              <BarChart data={calcGroupModules(group, test.sections)}>
                 <XAxis dataKey="name" />
-                <YAxis domain={[0, Math.max(...test.modules.map((m) => m.maxMarks))]} />
+                <YAxis domain={[0, Math.max(...test.sections.map((m) => m.maxMarks))]} />
                 <Tooltip />
                 <Legend />
                 <Bar dataKey="avg" fill={PASTEL_COLORS[1]} radius={[5, 5, 0, 0]} />
@@ -67,16 +77,23 @@ const GroupSummary = ({ group, test, onUserSelect, onBack }) => {
             <ResponsiveContainer width="100%" height={250}>
               <PieChart>
                 <Pie
-                  data={passFailData(group.users, test.modules, test.minMarks)}
-                  dataKey="value"
-                  nameKey="name"
-                  outerRadius={100}
-                  label
-                >
-                  {passFailData(group.users, test.modules, test.minMarks).map((entry, index) => (
-                    <Cell key={`c-${index}`} fill={PASTEL_COLORS[index]} />
-                  ))}
-                </Pie>
+      data={getStatusPieData(group.users)}
+      dataKey="value"
+      nameKey="name"
+      outerRadius={100}
+      label
+    >
+      {getStatusPieData(group.users).map((entry, index) => (
+        <Cell
+          key={`cell-${index}`}
+          fill={
+            entry.name === "Pass" ? "#90BE6D" :
+            entry.name === "Fail" ? "#F94144" :
+            "#F9C74F" // Pending - yellow
+          }
+        />
+      ))}
+    </Pie>
               </PieChart>
             </ResponsiveContainer>
           </Paper>
@@ -86,16 +103,27 @@ const GroupSummary = ({ group, test, onUserSelect, onBack }) => {
         <Grid item size={{sm:12}}>
           <Grid container spacing={2}>
             {group.users.map((u) => {
-              const total = test.modules.reduce((sum, m) => sum + (u.obtained[m.id] || 0), 0);
-              const passed = total >= test.minMarks;
+              const total = test.sections.maxMarks;
+              const passed = u.status;
               return (
                 <Grid item size={{sm:3}} key={u.id}>
                   <Paper sx={{ p: 2, borderRadius: 3, boxShadow: 2 }}>
                     <Typography variant="subtitle2">{u.name}</Typography>
-                    <Typography variant="caption">Total: {total}/{test.modules.reduce((s,m)=>s+m.maxMarks,0)}</Typography>
                     <Chip
-                      label={passed ? "Pass" : "Fail"}
-                      color={passed ? "success" : "error"}
+                      label={
+    u.status === "pass"
+      ? "Pass"
+      : u.status === "fail"
+      ? "Fail"
+      : "Pending"
+  }
+                       color={
+    u.status === "pass"
+      ? "success"
+      : u.status === "fail"
+      ? "error"
+      : "warning"
+  }
                       size="small"
                       sx={{ mt: 1, mb: 1 }}
                     />

@@ -1,13 +1,13 @@
 import axios from 'axios'
 const api = axios.create({
-  baseURL: "http://localhost:7000/",
-  //baseURL:"https://apis.idsadossier2025.mindslablearning.com/"
+  //baseURL: "http://localhost:7000/",
+  baseURL:"https://apis.idsadossier2025.mindslablearning.com/"
 })
 // 🔑 Interceptor to always attach token from localStorage
 // 🔑 Request interceptor to attach token
 const publicApi = axios.create({
-  baseURL: "http://localhost:7000/"
-  //baseURL:"https://apis.idsadossier2025.mindslablearning.com/"
+  //baseURL: "http://localhost:7000/"
+  baseURL:"https://apis.idsadossier2025.mindslablearning.com/"
 })
 api.interceptors.request.use(
   (config) => {
@@ -30,11 +30,13 @@ api.interceptors.response.use(
     if (error.response?.status === 403 ||error.response?.status === 401||error.response?.status === 404) {
       // remove user from localStorage
       localStorage.removeItem('user');
+        window.location.href = "/login"; // adjust to your route
       // optionally reload the page or redirect to login
     }
     return Promise.reject(error);
   }
 );
+export const imgUrl="https://s3.us-east-1.amazonaws.com/idsadossier2025.mindslablearning.com"
 export const addUser = (data) => {
   //console.log(data)
   return api.post("users/add_user", data)
@@ -140,4 +142,10 @@ export const deleteQuestion=(data)=>{
 }
 export const udpateMinScore=(data)=>{
   return api.post("exams/update_min_marks",data)
+}
+export const dashboardApi=(data)=>{
+  return api.post("exams/admin_dashboard",data)
+}
+export const testSummary=(data)=>{
+return api.post("summary/exams_summary",data)
 }

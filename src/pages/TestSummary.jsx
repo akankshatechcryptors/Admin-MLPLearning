@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState ,useEffect} from "react";
 import {
   Box,
   Typography,
@@ -21,8 +21,11 @@ import DownloadIcon from "@mui/icons-material/Download";
 import TestSummary from "../components/TestSummary";
 import GroupSummary from "../components/GroupSummary";
 import UserSummary from "../components/UserSummary";
-
+import { testSummary } from "../common/api";
+import Breadcrumb from '../components/BreadCrumb'
+import Loading from '../components/Loading'
 // ✅ Updated sample data
+import { format } from "date-fns";
 const sampleData = [
   {
     id: 201,
@@ -95,15 +98,29 @@ const getCardColor = (status) => {
 const getTotalUsers = (test) => {
   return test.groups.reduce((count, group) => count + group.users.length, 0);
 };
-
+const formatDate = (date) =>
+  new Intl.DateTimeFormat("en-GB", {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+  }).format(new Date(date));
 
 const TestResultsDashboard = () => {
   const [selectedTest, setSelectedTest] = useState(null);
   const [selectedGroup, setSelectedGroup] = useState(null);
   const [selectedUser, setSelectedUser] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
+  const [data,setData]=useState(null)
   const theme = useTheme();
   const isSm = useMediaQuery(theme.breakpoints.down("md"));
+  useEffect(()=>{
+const getSumData=async()=>{
+const res=await testSummary()
+console.log(res)
+setData(res.data)
+}
+getSumData()
+  },[])
 const onClose=()=>{
   setSelectedGroup(null)
   setSelectedTest(null)
@@ -112,28 +129,31 @@ const onClose=()=>{
   const filteredTests = sampleData.filter((test) =>
     test.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
-
+if (!data) return <Loading message={'Loading Summary data'}/>
   return (
     <Box p={{ xs: 2, md: 4 }}>
       {/* Header */}
       <Box display="flex" justifyContent="space-between" alignItems="center" mb={3} flexWrap="wrap" gap={2}>
-        <Typography variant="h5" fontWeight="bold">
-          Admin — Test Results Dashboard
-        </Typography>
+        <Breadcrumb/>
         <Box display="flex" gap={1}>
-          <IconButton onClick={() => window.location.reload()}>
-            <RefreshIcon />
-          </IconButton>
-          <Button variant="outlined" startIcon={<DownloadIcon />}>
-            Export
-          </Button>
+          
+          <Typography variant="h5" fontWeight="bold">
+          Test Summary
+        </Typography>
         </Box>
+         <Button
+                  variant="outlined"
+                  size="small"
+                  startIcon={<DownloadIcon />}
+                >
+                  Export
+                </Button>
       </Box>
 
       {/* Filters */}
       <Card sx={{ mb: 3, p: 2, borderRadius: 2 }}>
         <Grid container spacing={2} alignItems="center">
-          <Grid item xs={12} sm={6}>
+          <Grid item size={{xs:12 ,sm:8}}>
             <TextField
               fullWidth
               placeholder="Search tests, e.g. 'Final' or 'Batch'"
@@ -169,8 +189,8 @@ const onClose=()=>{
 
       {/* Test Cards */}
       <Grid container spacing={3}>
-        {filteredTests.map((test) => (
-          <Grid item xs={12} sm={6} key={test.id}>
+        {data.exams.map((test) => (
+          <Grid item size={{xs:12, sm:3,md:4,xl:5}} key={test.id}>
             <Card
               sx={{
                 p: 2,
@@ -184,7 +204,7 @@ const onClose=()=>{
             >
               <Box display="flex" justifyContent="space-between" alignItems="center" flexWrap="wrap" gap={1}>
                 <Typography variant="h6" fontWeight="bold">
-                  {test.name}
+                  {test.title}
                 </Typography>
                 <Typography
                   variant="caption"
@@ -203,25 +223,19 @@ const onClose=()=>{
 
               {/* Dates + Test Info */}
               <Typography variant="body2" color="text.secondary">
-                {test.startDate} → {test.endDate}<br/>•
-                Min Marks: {test.minMarks} <br/>• Total Users: {getTotalUsers(test)}
+                •{format(new Date(test.start_date), "dd MMM yyyy")} → {format(new Date(test.end_date), "dd MMM yyyy")}<br/>•
+                Min Marks: {test.min_marks} <br/>• Total Users: {getTotalUsers(test)}
               </Typography>
 
               <Box display="flex" gap={1} mt={1} flexWrap="wrap">
                 <Button
-                  variant="contained"
+                  variant="outlined"
                   size="small"
                   onClick={() => setSelectedTest(test)}
                 >
                   View
                 </Button>
-                <Button
-                  variant="outlined"
-                  size="small"
-                  startIcon={<DownloadIcon />}
-                >
-                  Export
-                </Button>
+               
               </Box>
             </Card>
           </Grid>
@@ -237,7 +251,7 @@ const onClose=()=>{
         fullScreen={isSm}
       >
         <DialogTitle>
-          {selectedTest?.name} — Summary ({selectedTest?.status})
+          {selectedTest?.title} — Summary ({selectedTest?.status})
         </DialogTitle>
         <DialogContent dividers>
           {selectedTest && !selectedGroup && (
