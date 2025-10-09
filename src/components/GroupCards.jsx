@@ -9,11 +9,11 @@ const Card = ({ title, count, onEdit, onDelete, onView }) => {
   return (
     <motion.div
       whileHover={{ scale: 1.02 }}
-      className="rounded-lg p-4 m-2 shadow-md bg-blue-200 flex justify-between items-center"
+      className="rounded-lg p-[1.5vw] m-2 shadow-md bg-blue-200 flex justify-between items-center"
     >
       <div>
         <h3 className="font-semibold text-lg">{title}</h3>
-        <p className="text-sm text-gray-600">{count} Doctors</p>
+        <p className="text-sm text-gray-600">{count} Users</p>
       </div>
       <div className="flex gap-1">
         <Tooltip title="View Users">

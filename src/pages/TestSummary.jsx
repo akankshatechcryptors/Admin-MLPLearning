@@ -116,7 +116,6 @@ const TestResultsDashboard = () => {
   useEffect(()=>{
 const getSumData=async()=>{
 const res=await testSummary()
-console.log(res)
 setData(res.data)
 }
 getSumData()
@@ -126,10 +125,12 @@ const onClose=()=>{
   setSelectedTest(null)
   setSelectedUser(null)
 }
-  const filteredTests = sampleData.filter((test) =>
-    test.name.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+
+
 if (!data) return <Loading message={'Loading Summary data'}/>
+const filteredTests = data?.exams?.filter((test) =>
+  test.title.toLowerCase().includes(searchTerm.toLowerCase())
+) || [];
   return (
     <Box p={{ xs: 2, md: 4 }}>
       {/* Header */}
@@ -141,19 +142,13 @@ if (!data) return <Loading message={'Loading Summary data'}/>
           Test Summary
         </Typography>
         </Box>
-         <Button
-                  variant="outlined"
-                  size="small"
-                  startIcon={<DownloadIcon />}
-                >
-                  Export
-                </Button>
+        <div></div>
       </Box>
 
       {/* Filters */}
       <Card sx={{ mb: 3, p: 2, borderRadius: 2 }}>
         <Grid container spacing={2} alignItems="center">
-          <Grid item size={{xs:12 ,sm:8}}>
+          <Grid item size={{xs:12 ,sm:12}}>
             <TextField
               fullWidth
               placeholder="Search tests, e.g. 'Final' or 'Batch'"
@@ -168,29 +163,14 @@ if (!data) return <Loading message={'Loading Summary data'}/>
               }}
             />
           </Grid>
-          <Grid item xs={12} sm={3}>
-            <TextField
-              fullWidth
-              type="date"
-              label="From"
-              InputLabelProps={{ shrink: true }}
-            />
-          </Grid>
-          <Grid item xs={12} sm={3}>
-            <TextField
-              fullWidth
-              type="date"
-              label="To"
-              InputLabelProps={{ shrink: true }}
-            />
-          </Grid>
+         
         </Grid>
       </Card>
 
       {/* Test Cards */}
       <Grid container spacing={3}>
-        {data.exams.map((test) => (
-          <Grid item size={{xs:12, sm:3,md:4,xl:5}} key={test.id}>
+        {filteredTests.map((test) => (
+          <Grid item size={{xs:12, sm:3,md:4,lg:4}} key={test.id}>
             <Card
               sx={{
                 p: 2,
@@ -247,7 +227,7 @@ if (!data) return <Loading message={'Loading Summary data'}/>
         open={!!selectedTest}
         onClose={() => setSelectedTest(null)}
         fullWidth
-        maxWidth="lg"
+        maxWidth="xl"
         fullScreen={isSm}
       >
         <DialogTitle>

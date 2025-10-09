@@ -17,6 +17,7 @@ import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
 import Breadcrumbs from "../components/BreadCrumb";
 import ConfirmDeleteDialog from "../common/ConfirmDelete";
+import { useMantineTheme } from '@mantine/core'
 import { toast } from "react-toastify";
 import { encryptPassword } from "../common/crypt"; 
 import { getAdmins, addAdmin, editAdmin } from "../common/api";
@@ -36,6 +37,7 @@ const AdminsPage = () => {
   const [deleteId, setDeleteId] = useState(null);
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [update, setUpdate] = useState(false);
+  const theme=useMantineTheme()
 
   const handleUpdate = () => setUpdate(!update);
 
@@ -189,10 +191,50 @@ const AdminsPage = () => {
     [handleEditAdmin, requestDeleteAdmin]
   );
 
-  const table = useMantineReactTable({ columns, data: admins, state: { isLoading: loading } });
+  const table = useMantineReactTable({
+  columns,
+  data: admins,
+  state: { isLoading: loading },
+  mantineTableProps: {
+    striped: true,
+    highlightOnHover: true,
+    withBorder: true,
+sx: (theme) => ({
+  fontSize: "1.5vw", // default
+
+  // Extra small screens
+  [`@media (max-width: ${theme.breakpoints.xs}px)`]: {
+    fontSize: "3.5vw",
+  },
+
+  // Small screens
+  [`@media (min-width: ${theme.breakpoints.sm}px) and (max-width: ${theme.breakpoints.md - 1}px)`]: {
+    fontSize: "2.5vw",
+  },
+
+  // Medium screens
+  [`@media (min-width: ${theme.breakpoints.md}px) and (max-width: ${theme.breakpoints.lg - 1}px)`]: {
+    fontSize: "2vw",
+  },
+
+  // Large screens
+  [`@media (min-width: ${theme.breakpoints.lg}px) and (max-width: ${theme.breakpoints.xl - 1}px)`]: {
+    fontSize: "1.5vw",
+  },
+
+  // Extra large screens
+  [`@media (min-width: ${theme.breakpoints.xl}px)`]: {
+    fontSize: "1.2vw",
+  },
+}),
+
+  },
+  mantinePaginationProps: { size: "lg", radius: "lg" },
+});
+
 
   return (
-    <Box className="p-6 bg-gray-50 min-h-screen">
+    <Box className="p-[2vw] bg-gray-50 min-h-screen">
       <Group position="apart" className="mb-4" style={{ alignItems: "center" }}>
         <Breadcrumbs />
         <Typography variant="h5" sx={{ fontWeight: 600 }}>

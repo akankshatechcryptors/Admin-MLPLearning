@@ -30,12 +30,12 @@ const calcGroupModules = (group, sections) => {
 const getStatusPieData = (users) => {
   const pass = (users || []).filter(u => u.status === "pass").length;
   const fail = (users || []).filter(u => u.status === "fail").length;
-  const pending = (users || []).filter(u => u.status !== "pass" && u.status !== "fail").length;
+  const pending = (users || []).filter(u => !u.status).length;
 
   return [
     { name: "Pass", value: pass },
     { name: "Fail", value: fail },
-    { name: "Pending", value: null },
+    { name: "Pending", value: pending },
   ];
 };
 
@@ -83,16 +83,9 @@ const GroupSummary = ({ group, test, onUserSelect, onBack }) => {
       outerRadius={100}
       label
     >
-      {getStatusPieData(group.users).map((entry, index) => (
-        <Cell
-          key={`cell-${index}`}
-          fill={
-            entry.name === "Pass" ? "#90BE6D" :
-            entry.name === "Fail" ? "#F94144" :
-            "#F9C74F" // Pending - yellow
-          }
-        />
-      ))}
+     {getStatusPieData(group.users).map((entry, index) => (
+                  <Cell key={`c-${index}`} fill={PASTEL_COLORS[index % PASTEL_COLORS.length]} />
+                ))}
     </Pie>
               </PieChart>
             </ResponsiveContainer>

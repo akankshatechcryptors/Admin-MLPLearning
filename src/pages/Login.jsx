@@ -27,7 +27,8 @@ const handleLogin = async (e) => {
 
   // 🔐 Encrypt the password entered by user
   const encryptedPassword = encryptPassword(password);
-  //console.log(encryptedPassword)
+  console.log(password)
+  console.log(encryptedPassword)
   const data = {
     email: email,
     password: encryptedPassword,
@@ -36,8 +37,6 @@ const handleLogin = async (e) => {
   try {
     const res = await login(data);
     const user = res.data;
-    console.log(res)
-
     if (user.error) {
       // ❌ Show error from backend
       toast.error(user.message || "Login failed", {
@@ -81,9 +80,9 @@ const handleLogin = async (e) => {
           display: 'flex',
           flexDirection: { xs: 'column', md: 'row' },
           borderRadius: 4,
-          overflow: 'hidden',
-          width: '100%',
-          maxWidth: '1100px',
+      width: '70%',       // changed from 100% maxWidth
+    maxWidth: '70%',    // optional, you can remove if you want full width
+    minHeight: '60vh',  // optional: keep it tall on bigger screens
         }}
       >
         <Box sx={{ flex: 1, padding: { xs: 4, md: 6 } }}>

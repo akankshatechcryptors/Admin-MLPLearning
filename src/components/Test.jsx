@@ -59,6 +59,7 @@ export default function TestSections() {
   const [openSectionModal, setOpenSectionModal] = useState(false);
   const [editingSectionIndex, setEditingSectionIndex] = useState(null);
   const [minMarks, setMinMarks] = useState(1);
+  const [disable,setDisable]=useState(false)
 
   // Upload modal
   const [uploadModalOpen, setUploadModalOpen] = useState(false);
@@ -103,20 +104,33 @@ export default function TestSections() {
   useEffect(() => {
     getData();
   }, [update]);
-console.log(sectionPdf)
   // Save Section
   const handleSaveSection = async () => {
+    setDisable(true)
     if (!sectionName.trim()) return;
-
-    const newSections = [...sections];
     if (editingSectionIndex !== null) {
-      newSections[editingSectionIndex] = {
-        ...newSections[editingSectionIndex],
-        name: sectionName,
-        instruction: sectionInstruction,
-        pdf: sectionPdf ? sectionPdf.name : newSections[editingSectionIndex].pdf,
-      };
-    } else {
+  try {
+    
+    const formData = new FormData();
+    formData.append('id',selectedSectionId)
+    formData.append('exam_id', testId);
+    formData.append('title', sectionName);
+    formData.append('description', sectionInstruction);
+    if (sectionPdf) {
+      formData.append('file', sectionPdf);
+    }
+
+   const res= await editSections(formData); // pass sectionId and formData
+    toast.success('Section updated successfully');
+    handleUpdate(); // refresh sections
+    handleCloseSectionModal();
+   
+  } catch (err) {
+    console.error(err);
+     setDisable(false)
+    toast.error('Failed to update section');
+  }
+}else {
       const formData = new FormData();
       formData.append('exam_id', testId);
       formData.append('title', sectionName);
@@ -124,11 +138,12 @@ console.log(sectionPdf)
       formData.append('file', sectionPdf);
       const data=await addSections(formData);
       //console.log(data)
+      toast.success('Section Created Successfully');
     }
-    toast.success('Section Created Successfully');
-    setSections(newSections);
+    
     handleCloseSectionModal();
     handleUpdate();
+     setDisable(false)
   };
 
   const handleCloseSectionModal = () => {
@@ -139,14 +154,15 @@ console.log(sectionPdf)
     setSectionPdf(null);
   };
 
-  const handleEditSection = (index) => {
-    const sec = sections[index];
-    setSectionName(sec.name);
-    setSectionInstruction(sec.instruction);
-    setSectionPdf(sec.pdf ? { name: sec.pdf } : null);
-    setEditingSectionIndex(index);
-    setOpenSectionModal(true);
-  };
+ const handleEditSection = (index) => {
+  const sec = sections[index];
+  setSectionName(sec.title); // use title instead of name
+  setSectionInstruction(sec.description); // backend might use description
+  setSectionPdf(sec.pdf_link || null); // store string URL or filename
+  setEditingSectionIndex(index);
+  setSelectedSectionId(sec.id); // <-- add this line
+  setOpenSectionModal(true);
+};
 
   // Add Question
   const handleAddQuestion = (sectionIndex) => {
@@ -502,9 +518,7 @@ console.log(sectionPdf)
                             <IconButton size="small" onClick={() => handleCopyQuestion(secIndex, qIndex)}>
                               <ContentCopyIcon color="success" />
                             </IconButton>
-                            <IconButton size="small" onClick={() => handleDeleteQuestion(secIndex, qIndex)}>
-                              <DeleteIcon color="error" />
-                            </IconButton>
+                            
                           </Box>
                         )}
                       </Box>
@@ -560,21 +574,34 @@ console.log(sectionPdf)
             value={sectionInstruction}
             onChange={(e) => setSectionInstruction(e.target.value)}
           />
-          <Button
-            variant="outlined"
-            component="label"
-            fullWidth
-            sx={{ mt: 2 }}
-            startIcon={<CloudUploadIcon />}
-          >
-            Upload PDF/Video
-            <input
-              type="file"
-              accept="application/pdf,video"
-              hidden
-              onChange={(e) => setSectionPdf(e.target.files[0])}
-            />
-          </Button>
+         <Button
+  variant="outlined"
+  component="label"
+  fullWidth
+  sx={{ mt: 2 }}
+  startIcon={<CloudUploadIcon />}
+>
+  Upload PDF/Video
+  <input
+    type="file"
+    accept="application/pdf,video/mp4"
+    hidden
+    onChange={(e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+
+      const maxSize = 50 * 1024 * 1024; // 50 MB in bytes
+      if (file.size > maxSize) {
+        alert('File size must be less than 50 MB.');
+        e.target.value = null; // reset the input
+        return;
+      }
+
+      setSectionPdf(file);
+    }}
+  />
+</Button>
+
           {sectionPdf && (
             <Typography variant="body2" sx={{ mt: 1 }}>
               File: {sectionPdf.name}
@@ -583,8 +610,12 @@ console.log(sectionPdf)
         </DialogContent>
         <DialogActions>
           <Button onClick={handleCloseSectionModal}>Cancel</Button>
-          <Button onClick={handleSaveSection} variant="contained">
-            {editingSectionIndex !== null ? 'Save' : 'Add'}
+          <Button onClick={handleSaveSection} variant="contained" disabled={disable}>
+             {disable 
+    ? "Submitting..." 
+    : editingSectionIndex !== null 
+      ? "Save" 
+      : "Add"}
           </Button>
         </DialogActions>
       </Dialog>

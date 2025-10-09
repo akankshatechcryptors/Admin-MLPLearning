@@ -13,6 +13,7 @@ import {
   Chip,
 } from "@mui/material";
 import { useLocation } from "react-router-dom";
+import { useMantineTheme } from '@mantine/core'
 import { MantineReactTable, useMantineReactTable } from "mantine-react-table";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
@@ -26,7 +27,7 @@ const GroupDetails = ({ onEditClick }) => {
   const [changedUsers, setChangedUsers] = useState({}); // track changed selections
   const [confirmAction, setConfirmAction] = useState(null);
   const [update, setUpdate] = useState(false);
-
+  const theme = useMantineTheme();
   const location = useLocation();
   const { state } = location;
   const groupName = state?.title || "";
@@ -208,16 +209,46 @@ const GroupDetails = ({ onEditClick }) => {
     },
   ].filter(Boolean);
 
-  const table = useMantineReactTable({
-    columns,
-    data: users,
-    enableColumnFilters: false,
-    enablePagination: true,
-    enableSorting: true,
-    initialState: { density: "xs", pagination: { pageSize: 10 } },
-    mantineTableProps: { striped: true, highlightOnHover: true, withBorder: true },
-    mantinePaginationProps: { size: "md", radius: "lg" },
-  });
+   const table = useMantineReactTable({
+  columns,
+  data: users,
+  mantineTableProps: {
+    striped: true,
+    highlightOnHover: true,
+    withBorder: true,
+sx: (theme) => ({
+  fontSize: "1.5vw", // default
+
+  // Extra small screens
+  [`@media (max-width: ${theme.breakpoints.xs}px)`]: {
+    fontSize: "3.5vw",
+  },
+
+  // Small screens
+  [`@media (min-width: ${theme.breakpoints.sm}px) and (max-width: ${theme.breakpoints.md - 1}px)`]: {
+    fontSize: "2.5vw",
+  },
+
+  // Medium screens
+  [`@media (min-width: ${theme.breakpoints.md}px) and (max-width: ${theme.breakpoints.lg - 1}px)`]: {
+    fontSize: "2vw",
+  },
+
+  // Large screens
+  [`@media (min-width: ${theme.breakpoints.lg}px) and (max-width: ${theme.breakpoints.xl - 1}px)`]: {
+    fontSize: "1.5vw",
+  },
+
+  // Extra large screens
+  [`@media (min-width: ${theme.breakpoints.xl}px)`]: {
+    fontSize: "1.2vw",
+  },
+}),
+
+  },
+  mantinePaginationProps: { size: "lg", radius: "lg" },
+});
+
 
   return (
     <Box sx={{ padding: 0 }}>

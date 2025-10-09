@@ -130,10 +130,10 @@ If something goes wrong, contact your tutor and communicate the problem.`;
           <Card
             key={folder.id}
             sx={{
-              width: 220,
-              height: 120,
+              width:"20%",
+              height: "20vh",
               bgcolor: "#e6f4e6",
-              borderRadius: "16px",
+              borderRadius: "20px",
               cursor: "pointer",
               position: "relative",
               border: "1px solid #d0e4d0",

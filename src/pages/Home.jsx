@@ -10,7 +10,6 @@ import AuthContext from '../common/AuthContext';
 
 const Home = () => {
   const auth = useContext(AuthContext);
-  console.log(auth)
 
   const baseCards = [
     {
@@ -20,6 +19,13 @@ const Home = () => {
       bgColor: 'bg-gradient-to-br from-blue-100 to-blue-200',
       path: '/dashboard',
     },
+     {
+      title: 'Test Summary',
+      subtitle: 'Detailed exam performance insights',
+      icon: <BarChartIcon />,
+      bgColor: 'bg-gradient-to-br from-gray-100 to-gray-200',
+      path: '/summary',
+    },
     {
       title: 'Tests',
       subtitle: 'Administer and review assessments',
@@ -27,13 +33,7 @@ const Home = () => {
       bgColor: 'bg-gradient-to-br from-indigo-100 to-indigo-200',
       path: '/tests',
     },
-    {
-      title: 'Test Summary',
-      subtitle: 'Detailed exam performance insights',
-      icon: <BarChartIcon />,
-      bgColor: 'bg-gradient-to-br from-gray-100 to-gray-200',
-      path: '/summary',
-    },
+   
   ];
 
   const superAdminCards = [
@@ -69,7 +69,7 @@ const Home = () => {
       <h1 className="text-3xl font-semibold text-gray-800 mb-6 text-center">
         Doctor Certification Portal
       </h1>
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 justify-items-center">
+      <div className="grid grid-cols-1 sm:grid-cols-1 lg:grid-cols-3 gap-6 xs:grid-col-1 justify-items-center">
         {cards.map((card, i) => (
           <DashboardCard key={i} {...card} />
         ))}

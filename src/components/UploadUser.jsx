@@ -56,14 +56,12 @@ const AddOrUploadUserModal = ({
     onClose();
   };
 
-  const onDrop = (acceptedFiles) => {
-    if (acceptedFiles.length > 0) {
-      // Pass the raw file(s) directly
-      onUploadBulk?.(acceptedFiles[0]);
-      onClose();
-    }
-  };
-
+const onDrop = (acceptedFiles) => {
+  if (acceptedFiles.length > 0) {
+    onUploadBulk?.(acceptedFiles[0]); // trigger bulk upload
+    // don't call onClose() here
+  }
+};
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
     accept: {

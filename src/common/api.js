@@ -134,7 +134,7 @@ export const uploadQuestions=(data)=>{
   return api.post("questions/upload_questions",data)
 }
  export const editQuestion=(data)=>{
-  return api.post("questions/edit_questions",data)
+  return api.post("questions/edit_question",data)
 }
 
 export const deleteQuestion=(data)=>{

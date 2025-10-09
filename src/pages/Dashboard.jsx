@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect,useContext } from 'react';
 import {
   Box,
   Typography,
@@ -11,6 +11,7 @@ import {
 } from '@mui/material';
 import { Bar, Line, Pie } from 'react-chartjs-2';
 import LoadingScreen from '../components/Loading';
+import {useNavigate} from 'react-router-dom'
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -24,6 +25,7 @@ import {
   TimeScale,
 } from 'chart.js';
 import 'chartjs-adapter-date-fns'; // important for time axis
+import AuthContext from '../common/AuthContext'
 import { Group } from '@mantine/core';
 import PeopleAltIcon from '@mui/icons-material/PeopleAlt';
 import AssignmentIcon from '@mui/icons-material/Assignment';
@@ -45,12 +47,12 @@ ChartJS.register(
 );
 
 export default function AdminDashboard() {
+  const navigate=useNavigate()
   const [data, setData] = useState(null);
-
+  const auth=useContext(AuthContext)
   useEffect(() => {
     const fetchData = async () => {
       const res = await dashboardApi();
-      console.log(res);
       setData(res.data);
     };
     fetchData();
@@ -59,32 +61,39 @@ export default function AdminDashboard() {
   if (!data) return <LoadingScreen message={'Loading Dashboard'} />;
 
   // KPI Cards
-  const stats = [
-    {
-      label: 'Total Students',
-      value: data.cards.totalUsers,
-      color: 'from-blue-500 to-blue-400',
-      icon: <PeopleAltIcon fontSize="large" />,
-    },
-    {
-      label: 'Total Tests',
-      value: data.cards.totalExams,
-      color: 'from-green-500 to-green-400',
-      icon: <AssignmentIcon fontSize="large" />,
-    },
-    {
-      label: 'Active Tests',
-      value: data.cards.activeExams,
-      color: 'from-yellow-500 to-yellow-400',
-      icon: <PlayCircleIcon fontSize="large" />,
-    },
-    {
-      label: 'Certificates Issued',
-      value: data.cards.certificatesIssued,
-      color: 'from-purple-500 to-purple-400',
-      icon: <WorkspacePremiumIcon fontSize="large" />,
-    },
-  ];
+const stats = [
+  {
+    label: 'Total Users',
+    value: data.cards.totalUsers,
+    color: ['#3B82F6', '#60A5FA'], // blue gradient from Tailwind blue-500 → blue-400
+    icon: <PeopleAltIcon fontSize="large" />,
+    onClick: () => {
+        if (auth.userType === 'superadmin') {
+          navigate('/users');
+        } else {
+          alert('You are not authorized to view users.');
+        }
+      },
+  },
+  {
+    label: 'Total Tests',
+    value: data.cards.totalExams,
+    color: ['#10B981', '#34D399'], // green gradient
+    icon: <AssignmentIcon fontSize="large" />,
+  },
+  {
+    label: 'Active Tests',
+    value: data.cards.activeExams,
+    color: ['#F59E0B', '#FBBF24'], // yellow gradient
+    icon: <PlayCircleIcon fontSize="large" />,
+  },
+  {
+    label: 'Certificates Issued',
+    value: data.cards.certificatesIssued,
+    color: ['#8B5CF6', '#A78BFA'], // purple gradient
+    icon: <WorkspacePremiumIcon fontSize="large" />,
+  },
+];
 
   // Student Growth Line Chart
   const studentGrowthData = {
@@ -140,12 +149,12 @@ export default function AdminDashboard() {
   };
 
   // Test Performance Bar Chart
-
+console.log(data.averagePassedStudents)
 const testPerformanceData = {
-  labels: data.averagePassedStudents.map((item) => `Exam ${item.exam_id}` || "N/A"),
+  labels: data.averagePassedStudents.map((item) => `${item.title}` || "N/A"),
   datasets: [
     {
-      label: "Avg Score (%)",
+      label: "Avg Passing Rate (%)",
       data: data.averagePassedStudents.map(
         (item) => (item.avg_passed_students_per_exam || 0) * 100 // convert 0.25 → 25%
       ),
@@ -184,7 +193,7 @@ const options = {
           const passed = dataset.totalPassed[index];
 
           return [
-            `Avg Score: ${avg}%`,
+            `Avg Passing Rate: ${avg}%`,
             `Total Allotted: ${allotted}`,
             `Total Passed: ${passed}`,
           ];
@@ -218,56 +227,46 @@ const options = {
   ];
 
   return (
-    <Box className="p-6 bg-gradient-to-br from-gray-50 to-gray-100 min-h-screen">
+    <Box className="p-[2vw] bg-gradient-to-br from-gray-50 to-gray-100 min-h-screen">
       <Group position="apart" className="mb-4" style={{ alignItems: 'center' }}>
-        <BreadCrumbs />
-        <Typography variant="h5" sx={{ fontWeight: 600 }}>
-          Dashboard
-        </Typography>
-        <div></div>
+        <BreadCrumbs />  
       </Group>
 
       {/* KPI Cards */}
       <Grid container spacing={3} mb={4}>
-       {stats.map((s, i) => (
-  <Grid item xs={6} sm={3} key={i}>
-    <Paper
-      className={`relative p-6 rounded-2xl shadow-lg 
-        bg-gradient-to-br ${s.color} text-white 
-        flex flex-col items-center justify-center h-44 
-        backdrop-blur-md transition-all duration-300 
-        hover:shadow-2xl hover:-translate-y-2 hover:scale-105`}
-      elevation={6}
-    >
-      {/* Glowing circle behind icon */}
-      <div className="absolute top-4 left-1/2 -translate-x-1/2 w-20 h-20 
-        bg-white/20 rounded-full blur-2xl" />
-
-      {/* Icon */}
-      <Box className="mb-3 z-10 flex items-center justify-center w-14 h-14 rounded-full bg-white/30">
-        {s.icon}
-      </Box>
-
-      {/* Value */}
-      <Typography
-        variant="h5"
-        fontWeight={700}
-        className="z-10 tracking-wide"
-      >
-        {s.value}
-      </Typography>
-
-      {/* Label */}
-      <Typography
-        variant="body2"
-        className="opacity-90 mt-1 z-10 tracking-tight"
-      >
-        {s.label}
-      </Typography>
-    </Paper>
-  </Grid>
-))}
-
+        {stats.map((s, i) => (
+          <Grid item size={{xs:6, sm:3}} key={i}>
+              <Paper
+  sx={{
+    p: 6, // padding
+    borderRadius: '20px', // Tailwind's 2xl ≈ 1rem * 2? or use 16px-24px
+    boxShadow: 3, // Tailwind shadow-md
+    background: `linear-gradient(to right, ${s.color})`,
+    color: 'white',
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    justifyContent: 'center',
+    height: 160, // h-40 ≈ 10rem = 160px
+    backdropFilter: 'blur(5px)',
+    backgroundOpacity: 0.9, // MUI doesn't support directly, handled via rgba
+    transition: 'all 0.3s ease',
+    '&:hover': {
+      boxShadow: 6, // shadow-xl
+      transform: 'translateY(-4px)',
+    },
+  }}
+              >
+              <Box className="mb-2">{s.icon}</Box>
+              <Typography variant="h5" fontWeight={700}>
+                {s.value}
+              </Typography>
+              <Typography variant="body2" className="opacity-90 mt-1">
+                {s.label}
+              </Typography>
+            </Paper>
+          </Grid>
+        ))}
       </Grid>
 
       <Grid container spacing={3}>
@@ -326,7 +325,7 @@ const options = {
         </Grid>
 
         {/* Recent Activity */}
-        <Grid item size={{xs:12, sm:12,md:12}}>
+        {/* <Grid item size={{xs:12, sm:12,md:12}}>
           <Paper className="p-4 rounded-2xl shadow-md h-full bg-white">
             <Typography variant="subtitle1" fontWeight={700} mb={2}>
               📝 Recent Activity
@@ -344,7 +343,7 @@ const options = {
               ))}
             </List>
           </Paper>
-        </Grid>
+        </Grid> */}
       </Grid>
     </Box>
   );

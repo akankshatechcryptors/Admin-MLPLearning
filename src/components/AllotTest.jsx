@@ -16,6 +16,7 @@ import {
   Typography,
 } from "@mui/material";
 import { getGroups } from "../common/api";
+import { toast } from "react-toastify"; // ✅ import toast
 const AllotTestModal = ({ open, onClose, onSubmit ,selectedTest,error,disable}) => {
   const [Groups,setGroups]=useState([])
   
@@ -50,6 +51,14 @@ const AllotTestModal = ({ open, onClose, onSubmit ,selectedTest,error,disable}) 
   };
 
   const handleSave = () => {
+      const { group_ids, start_date, end_date } = formData;
+
+    // ✅ Validation
+    if (!group_ids.length || !start_date || !end_date) {
+      toast.error("Please fill all required fields (Groups, Start Date, End Date)");
+      return; // stop submission
+    }
+
     onSubmit(formData);
     onClose();
     setFormData({

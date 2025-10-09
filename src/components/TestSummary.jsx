@@ -21,13 +21,16 @@ import {
 } from "recharts";
 
 const PASTEL_COLORS = [
+  "#90BE6D",
   "#A8DADC",
   "#F4A261",
   "#E9C46A",
   "#F6BD60",
-  "#84A59D",
-  "#90BE6D",
+  "#84A59D"
 ];
+import CheckCircleIcon from "@mui/icons-material/CheckCircle";
+import CancelIcon from "@mui/icons-material/Cancel";
+import HourglassEmptyIcon from "@mui/icons-material/HourglassEmpty";
 
 // Module-wise average
 // Module-wise average for only attempted users (pass/fail)
@@ -93,9 +96,7 @@ const getGroupStatusCounts = (users) => {
 
 const TestSummary = ({ test, onGroupSelect }) => {
   const allUsers = (test.groups || []).flatMap((g) => g.users || []);
-  console.log(allUsers)
   const modules = test.sections || [];
-  console.log(test)
   return (
     <Grid container spacing={3}>
       {/* Module-wise Average */}
@@ -156,7 +157,7 @@ const TestSummary = ({ test, onGroupSelect }) => {
         <Divider sx={{ mb: 2 }} />
         <Grid container spacing={2}>
           {(test.groups || []).map((g) => (
-            <Grid item xs={12} sm={3} key={g.groupName}>
+            <Grid item size={{sx:2,md:3,lg:3 ,sm:4}} key={g.groupName}>
               <Paper
                 sx={{
                   p: 2.5,
@@ -171,19 +172,20 @@ const TestSummary = ({ test, onGroupSelect }) => {
                 }}
               >
                 <Box>
-                  <Typography variant="subtitle1" fontWeight="bold">
+                  <Typography variant="body1" fontWeight="bold">
                     {g.groupName}
                   </Typography>
                   <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
                     Users: {(g.users || []).length}
                   </Typography>
                   <Typography variant="body2" color="text.secondary">
-                    Pass -{getGroupStatusCounts(g.users).pass} /{" "} 
-                    Fail - {getGroupStatusCounts(g.users).fail} /{" "} 
-                    Pending:{" "} -  {getGroupStatusCounts(g.users).pending}
-  
- 
- 
+                    Pass - {getGroupStatusCounts(g.users).pass}{" "}
+                    </Typography>
+                    <Typography variant="body2" color="text.secondary">
+                    Fail - {getGroupStatusCounts(g.users).fail}{" "}
+                    </Typography >
+                    <Typography variant="body2" color="text.secondary">
+                    Pending:{" "} -  {getGroupStatusCounts(g.users).pending} 
                   </Typography>
                 </Box>
                 <Button sx={{ mt: 2 }} size="small" variant="outlined" onClick={() => onGroupSelect(g)}>

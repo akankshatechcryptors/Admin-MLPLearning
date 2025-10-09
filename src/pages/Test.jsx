@@ -102,7 +102,6 @@ export default function TestPage() {
   const handleAddTest = async (name, desc) => {
     try {
       const res=await addExam({ title: name, description: desc });
-      console.log(res)
       handleUpdate();
     } catch (error) {
       console.error(error);
@@ -154,7 +153,7 @@ const handleEditTest = async (id, newTitle, newDesc) => {
   };
 
   return (
-    <Box className="p-6 bg-gray-50 min-h-screen">
+    <Box className="p-[2vw] bg-gray-50 min-h-screen">
      {loading? (
       <Box
         sx={{

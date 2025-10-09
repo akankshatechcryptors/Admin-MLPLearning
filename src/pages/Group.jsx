@@ -87,7 +87,8 @@ const Groups = () => {
       if (groupId) formData.append('group_id', groupId);
 
       const res = await uploadUsers(formData);
-      //console.log("Uploaded users response:", res);
+      toast.success("Uploaded users response");
+       handleUpdate()
       setOpenModal(false);
     } catch (err) {
       console.error("Error uploading users", err);
@@ -111,7 +112,7 @@ const Groups = () => {
   const cancelDelete = () => setConfirmAction(null);
 
   return (
-    <div className="p-6 bg-gray-50 min-h-screen">
+    <div className="p-[2vw] bg-gray-50 min-h-screen">
       <Box className="flex justify-between items-center mb-6">
         <Breadcrumbs />
         <Typography variant="h6" sx={{ fontWeight: 'bold', color: 'text.primary' }}>

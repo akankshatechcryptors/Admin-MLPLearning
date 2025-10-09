@@ -42,7 +42,7 @@ const UserSummary = ({ user, test, onBack }) => {
   }, [user, test]);
    const handleDownload = () => {
     if (pdfUrl) {
-      // console.log(pdfUrl)
+      console.log(pdfUrl)
       saveAs(pdfUrl, `Certificate_${test.id || "NA"}.pdf`);
     }
   };
@@ -158,7 +158,7 @@ const UserSummary = ({ user, test, onBack }) => {
           variant="contained"
           color="success"
           startIcon={<VerifiedIcon />}
-          onClick={()=>handleDownload}
+          onClick={handleDownload}
           sx={{ borderRadius: 2 }}
         >
           View Certificate

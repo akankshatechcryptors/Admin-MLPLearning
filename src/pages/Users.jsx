@@ -73,7 +73,7 @@ const Users = () => {
   };
 
   return (
-    <div className="p-6 bg-gray-50 min-h-screen">
+    <div className="p-[2vw] bg-gray-50 min-h-screen">
       <Box className="flex justify-between items-center mb-6">
         <Breadcrumbs />
         <Button
