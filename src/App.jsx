@@ -18,6 +18,7 @@ import Admin from './pages/Admins'
 import TestList  from './components/TestCards'
 import TestQuestions from './pages/TestQuestions'
 import AdminDashboard from './pages/Dashboard';
+import Certificates from './components/Certificates';
 import { motion } from 'framer-motion';
 function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -104,6 +105,7 @@ function App() {
           <Route path="summary" element={<TestSummary/>}/>
           <Route path="admins" element={<Admin/>}/>
           <Route path="add-questions" element={<TestQuestions/>}/>
+          <Route path='certificates' element={<Certificates/>}/>
         </Route>
         <Route path="*" element={<div>404 Not Found</div>} />
       </Route>

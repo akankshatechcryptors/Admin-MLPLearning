@@ -68,7 +68,7 @@ const stats = [
     color: ['#3B82F6', '#60A5FA'], // blue gradient from Tailwind blue-500 → blue-400
     icon: <PeopleAltIcon fontSize="large" />,
     onClick: () => {
-        if (auth.userType === 'superadmin') {
+        if (auth.type === 'superadmin') {
           navigate('/users');
         } else {
           alert('You are not authorized to view users.');
@@ -92,6 +92,13 @@ const stats = [
     value: data.cards.certificatesIssued,
     color: ['#8B5CF6', '#A78BFA'], // purple gradient
     icon: <WorkspacePremiumIcon fontSize="large" />,
+      onClick: () => {
+        if (auth.type === 'superadmin') {
+          navigate('/certificates');
+        } else {
+          alert('You are not authorized to view users.');
+        }
+      },
   },
 ];
 
@@ -149,7 +156,6 @@ const stats = [
   };
 
   // Test Performance Bar Chart
-console.log(data.averagePassedStudents)
 const testPerformanceData = {
   labels: data.averagePassedStudents.map((item) => `${item.title}` || "N/A"),
   datasets: [
@@ -237,6 +243,7 @@ const options = {
         {stats.map((s, i) => (
           <Grid item size={{xs:6, sm:3}} key={i}>
               <Paper
+              onClick={s.onClick}
   sx={{
     p: 6, // padding
     borderRadius: '20px', // Tailwind's 2xl ≈ 1rem * 2? or use 16px-24px

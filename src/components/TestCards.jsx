@@ -51,8 +51,8 @@ const TestCards = () => {
   const [selectedTest, setSelectedTest] = useState(null);
   const[error,setError]=useState('')
   const[disable,setDisable]=useState(false)
+  const[group ,setGroup]=useState([])
   //console.log(selectedTest)
-
 
 function isRestricted(dateStart) {
   if (!dateStart) return false; // null or undefined → not restricted
@@ -87,8 +87,8 @@ function isRestricted(dateStart) {
     try {
       const data = { folder_id: folder_id, group_id: '' };
       const res = await getExam(data);
-      console.log(res.data.groups);
-      setTests(res.data.groups);
+      console.log(res.data.exams);
+      setTests(res.data.exams);
     } catch (error) {
       console.error(error);
     }
@@ -105,6 +105,7 @@ function isRestricted(dateStart) {
 const handleSelectTest=(test)=>{
 setSelectedTest(test.id)
 setOpenAllotModal(true)
+setGroup(test.allocated_groups)
 if(test.total_questions<=0 && test.min_marks<=0){
 setError("Please Add Questions/Sections  and Minimum Marks Test before Alloting test")
 setDisable(true)
@@ -275,8 +276,7 @@ else{
               </Box>
 
               <Box sx={{ display: 'flex', gap: 1 }}>
-                {test.allocated_group_count === 0 && (
-                  <>
+                
                     <Button
                       size="small"
                       sx={{ color: 'green' }}
@@ -284,18 +284,14 @@ else{
                     >
                       Allot Test
                     </Button>
-                  </>
-                )}
-               {!isRestricted(test.start_date) && (
-  <Button
+               
+<Button
     size="small"
     sx={{ color: 'green' }}
     onClick={() => handleEditTest(test)}
   >
     Edit
   </Button>
-)}
-
                 {/* <Button size="small" sx={{ color: "green" }} onClick={() => handleDeleteTest(test.id)}>
                   Delete
                 </Button> */}
@@ -353,7 +349,8 @@ else{
             onSubmit={handleAllotTest}
             selectedTest={selectedTest}
             error={error}
-            disable={disable}
+            disable={false}
+            group={group}
           />
         </>
       )}

@@ -95,6 +95,7 @@ const getGroupStatusCounts = (users) => {
 
 
 const TestSummary = ({ test, onGroupSelect }) => {
+  //console.log(test)
   const allUsers = (test.groups || []).flatMap((g) => g.users || []);
   const modules = test.sections || [];
   return (

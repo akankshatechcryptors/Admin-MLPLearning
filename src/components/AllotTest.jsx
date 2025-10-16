@@ -1,5 +1,5 @@
 // components/AllotTestModal.jsx
-import React, { useState,useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Dialog,
   DialogTitle,
@@ -11,94 +11,83 @@ import {
   FormControl,
   InputLabel,
   Select,
-  Checkbox,
-  ListItemText,
   Typography,
 } from "@mui/material";
 import { getGroups } from "../common/api";
-import { toast } from "react-toastify"; // ✅ import toast
-const AllotTestModal = ({ open, onClose, onSubmit ,selectedTest,error,disable}) => {
-  const [Groups,setGroups]=useState([])
-  
+import { toast } from "react-toastify"; 
+
+const AllotTestModal = ({ open, onClose, onSubmit, selectedTest, error, disable,group }) => {
+  const [Groups, setGroups] = useState([]);
   const [formData, setFormData] = useState({
-    exam_id:selectedTest||'',
-    group_ids: [], // store selected group titles
-    start_date: "",
-    end_date: "",
+    exam_id: selectedTest || '',
+    group_ids:group[0]?.id ||[], // single select
+    start_date:group[0]?.start_date ||"",
+    end_date: group[0]?.end_date||"",
   });
   useEffect(() => {
-  if (selectedTest) {
-    setFormData((prev) => ({ ...prev, exam_id: selectedTest }));
-  }
-}, [selectedTest]);
-   // Fetch groups from API
-    const getGroupdata = async () => {
-      try {
-        const res = await getGroups();
-        //console.log(res)
-        if (!res.data.error) setGroups(res.data.groups);
-      } catch (err) {
-        console.error("Failed to fetch groups:", err);
-      }
-    };
-  
-    useEffect(() => {
-      getGroupdata();
-    }, []);
+    if (selectedTest) {
+      setFormData((prev) => ({ ...prev, exam_id: selectedTest }));
+    }
+  }, [selectedTest]);
 
+  const getGroupdata = async () => {
+    try {
+      const res = await getGroups();
+      if (!res.data.error) setGroups(res.data.groups);
+    } catch (err) {
+      console.error("Failed to fetch groups:", err);
+    }
+  };
+
+  useEffect(() => {
+    getGroupdata();
+  }, []);
+console.log(formData)
   const handleChange = (field, value) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
   const handleSave = () => {
-      const { group_ids, start_date, end_date } = formData;
+    const { group_ids, start_date, end_date } = formData;
 
-    // ✅ Validation
-    if (!group_ids.length || !start_date || !end_date) {
-      toast.error("Please fill all required fields (Groups, Start Date, End Date)");
-      return; // stop submission
+    if (!group_ids || !start_date || !end_date) {
+      toast.error("Please fill all required fields (Group, Start Date, End Date)");
+      return;
     }
 
     onSubmit(formData);
     onClose();
     setFormData({
-      exam_id:'',
-    group_ids: [], // store selected group titles
-    start_date: "",
-    end_date: "",
-    })
+      exam_id: '',
+      group_ids: [],
+      start_date: "",
+      end_date: "",
+    });
   };
 
   return (
     <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
       <DialogTitle>Allot test</DialogTitle>
       <DialogContent>
+        {error !== null && <Typography variant="p" textAlign="center" color="error">{error}</Typography>}
+
         {/* Groups */}
-              {error!==null && <Typography variant="p" textAlign="center" color="error">{error}</Typography>}
-
-        <FormControl fullWidth margin="dense">
-          <InputLabel>Groups*</InputLabel>
-         <Select
-  multiple
-  value={formData.group_ids}
-  disabled={disable}
-  onChange={(e) => handleChange("group_ids", e.target.value)}
-  renderValue={(selected) =>
-    Groups.filter((g) => selected.includes(g.id)).map((g) => g.title).join(", ")
-  }
->
-  {Groups.map((group) => (
-    <MenuItem key={group.id} value={group.id}>
-      <Checkbox checked={formData.group_ids.includes(group.id)} />
-      <ListItemText primary={`${group.title} (${group.user_count})`} />
-    </MenuItem>
-  ))}
-</Select>
-
+       {!group?.length>0 &&( <FormControl fullWidth margin="dense">
+          <InputLabel>Group*</InputLabel>
+          <Select
+            value={formData.group_ids}
+            disabled={disable}
+            onChange={(e) => handleChange("group_ids", e.target.value)}
+            label="Group*"
+          >
+            {Groups.map((group) => (
+              <MenuItem key={group.id} value={group.id}>
+                {`${group.title} (${group.user_count})`}
+              </MenuItem>
+            ))}
+          </Select>
         </FormControl>
-
-
-
+)}
         {/* Dates */}
         <TextField
           label="Start date of the test*"

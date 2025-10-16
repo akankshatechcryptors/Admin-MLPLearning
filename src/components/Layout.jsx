@@ -14,6 +14,10 @@ const Layout = () => {
       <main className="pt-[80px] px-4 flex-1 bg-gray-50">
         <Outlet />
       </main>
+      <div className='py-1'>
+        <footer className="text-center font-semibold">
+          Copyright © MIND&apos;s Lab Publishing 2025. All rights reserved.</footer>
+      </div>
     </div>
   );
 };

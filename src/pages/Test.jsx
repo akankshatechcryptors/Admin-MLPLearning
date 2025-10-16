@@ -33,6 +33,7 @@ export default function TestPage() {
   const [update, setUpdate] = useState(false);
   const [folders, setFolders] = useState([]);
   const [unassignedTests, setUnassignedTests] = useState([]);
+  const [group,setGroup]=useState([])
   const [loading,setLoading]=useState(false)
   const navigate=useNavigate();
   // dropdown state
@@ -44,6 +45,7 @@ export default function TestPage() {
     setLoading(true)
     try {
       const res = await getFolder();
+      //console.log(res)
       setFolders(res.data.folders);
       setLoading(false)
     } catch (error) {
@@ -56,8 +58,8 @@ export default function TestPage() {
     const data = { folder_id: "", group_id: "" };
     try {
       const res = await getExam(data);
-      //console.log(res)
-      setUnassignedTests(res.data.groups);
+      console.log(res)
+      setUnassignedTests(res.data.exams);
       setLoading(false)
     } catch (error) {
       console.error(error);
@@ -224,20 +226,20 @@ const handleEditTest = async (id, newTitle, newDesc) => {
                 </Box>
 
                 <Box sx={{ display: "flex", gap: 1 }}>
-                  {
-                    test.allocated_group_count ===0 &&(<>
+
                     <Button
                     size="small"
                     sx={{ color: "green" }}
                      onClick={() => {
     setSelectedTest(test.id); // store the test object
     setOpenAllotModal(true);
+    setGroup(test.allocated_groups)
   }}
                   >
                     Allot Test
                   </Button>
-                    </>)
-                  }
+                 
+ 
                   <Button
                     size="small"
                     sx={{ color: "green" }}
@@ -319,6 +321,7 @@ const handleEditTest = async (id, newTitle, newDesc) => {
         onClose={() => setOpenAllotModal(false)}
         onSubmit={handleAllotTest}
         selectedTest={selectedTest}
+        group={group}
       />
     </Box>
   );

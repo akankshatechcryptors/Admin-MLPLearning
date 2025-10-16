@@ -49,7 +49,7 @@ export default function TestSections() {
   today.setHours(0, 0, 0, 0);
   const startDate = new Date(dateStart);
   startDate.setHours(0, 0, 0, 0);
-  const restricted = startDate <= today;
+  const restricted =false;
 
   // Sections state
   const [sections, setSections] = useState([]);
@@ -70,7 +70,6 @@ export default function TestSections() {
   const [editSectionIndex, setEditSectionIndex] = useState(null);
   const [editData, setEditData] = useState(null);
   const [openMinMarksModal, setOpenMinMarksModal] = useState(false);
-
   // Delete multiple questions state
   const [deleteMode, setDeleteMode] = useState(null);
   const [selectedQuestions, setSelectedQuestions] = useState([]);
@@ -349,7 +348,7 @@ export default function TestSections() {
               onClick={() => setOpenSectionModal(true)}
               startIcon={<AddCircleOutlineIcon />}
             >
-              Section
+              Module
             </Button>
           </>
         )}
@@ -533,7 +532,7 @@ export default function TestSections() {
         ) : (
           <Box textAlign="center" p={4} bgcolor="white">
             <Typography variant="h6" fontWeight="bold" gutterBottom>
-              Please create sections
+              Please create Modules
             </Typography>
             {!restricted && (
               <Button
@@ -547,7 +546,7 @@ export default function TestSections() {
                 }}
                 startIcon={<AddCircleOutlineIcon />}
               >
-                Add Section
+                Add Module
               </Button>
             )}
           </Box>
@@ -556,10 +555,10 @@ export default function TestSections() {
 
       {/* Section Modal */}
       <Dialog open={openSectionModal} onClose={handleCloseSectionModal} fullWidth>
-        <DialogTitle>{editingSectionIndex !== null ? 'Edit Section' : 'Add Section'}</DialogTitle>
+        <DialogTitle>{editingSectionIndex !== null ? 'Edit Section' : 'Add Module'}</DialogTitle>
         <DialogContent>
           <TextField
-            label="Section Name"
+            label="Module Name"
             fullWidth
             margin="normal"
             value={sectionName}

@@ -64,6 +64,7 @@ const handleLogin = async (e) => {
 };
 
   return (
+  <>
     <Box
       sx={{
         minHeight: '100vh',
@@ -167,6 +168,11 @@ const handleLogin = async (e) => {
         </div>
       </Paper>
     </Box>
+    <div className='py-1'>
+        <footer className="text-center font-semibold">
+          Copyright © MIND&apos;s Lab Publishing 2025. All rights reserved.</footer>
+      </div>
+  </>
   );
 };
 

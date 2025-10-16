@@ -24,6 +24,7 @@ import UserSummary from "../components/UserSummary";
 import { testSummary } from "../common/api";
 import Breadcrumb from '../components/BreadCrumb'
 import Loading from '../components/Loading'
+import ExportToExcelButton from "../components/ExportSummary";
 // ✅ Updated sample data
 import { format } from "date-fns";
 const sampleData = [
@@ -116,6 +117,7 @@ const TestResultsDashboard = () => {
   useEffect(()=>{
 const getSumData=async()=>{
 const res=await testSummary()
+console.log(res)
 setData(res.data)
 }
 getSumData()
@@ -131,6 +133,12 @@ if (!data) return <Loading message={'Loading Summary data'}/>
 const filteredTests = data?.exams?.filter((test) =>
   test.title.toLowerCase().includes(searchTerm.toLowerCase())
 ) || [];
+
+// Determine the data to export based on filtered tests
+const exportData = {
+  exams: filteredTests.length > 0 ? filteredTests : data?.exams
+};
+
   return (
     <Box p={{ xs: 2, md: 4 }}>
       {/* Header */}
@@ -142,7 +150,7 @@ const filteredTests = data?.exams?.filter((test) =>
           Test Summary
         </Typography>
         </Box>
-        <div></div>
+        <ExportToExcelButton data={exportData } fileName="Test_Summary" disabled={filteredTests.length === 0} />
       </Box>
 
       {/* Filters */}

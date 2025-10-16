@@ -1,7 +1,7 @@
 import React from "react";
 import { Grid, Paper, Typography, Button, Box, Chip } from "@mui/material";
 import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, Legend, PieChart, Pie, Cell } from "recharts";
-
+import ExportToExcelButton from "./ExcelExport";
 const PASTEL_COLORS = ["#A8DADC", "#F4A261", "#E9C46A", "#F6BD60", "#84A59D", "#90BE6D"];
 
 // Module-wise average for a single group

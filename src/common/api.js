@@ -1,13 +1,13 @@
 import axios from 'axios'
 const api = axios.create({
-  //baseURL: "http://localhost:7000/",
-  baseURL:"https://apis.idsadossier2025.mindslablearning.com/"
+  baseURL: "http://localhost:7000/",
+  //baseURL:"https://apis.idsadossier2025.mindslablearning.com/"
 })
 // 🔑 Interceptor to always attach token from localStorage
 // 🔑 Request interceptor to attach token
 const publicApi = axios.create({
-  //baseURL: "http://localhost:7000/"
-  baseURL:"https://apis.idsadossier2025.mindslablearning.com/"
+  baseURL: "http://localhost:7000/"
+  //baseURL:"https://apis.idsadossier2025.mindslablearning.com/"
 })
 api.interceptors.request.use(
   (config) => {

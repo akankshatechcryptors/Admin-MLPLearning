@@ -20,7 +20,7 @@ import AuthContext from '../common/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { encryptPassword } from "../common/crypt";
 import{ changePassword} from '../common/api'
-import Logo from '../assets/logo.png'
+import Logo from '../assets/logo.jpg'
 import {toast} from 'react-toastify'
 const Header = () => {
   const [anchorEl, setAnchorEl] = useState(null);
@@ -99,17 +99,11 @@ const Header = () => {
     src={Logo}
     alt="MLP Learning"
     style={{
-      height: '40px',
+      height: '4vw',
       width: 'auto',
       marginRight: '8px'
     }}
   />
-  <Typography
-    fontSize='15px'
-    color="primary"
-  >
-    MLP Learning
-  </Typography>
 </Box>
 
         {/* Search bar */}

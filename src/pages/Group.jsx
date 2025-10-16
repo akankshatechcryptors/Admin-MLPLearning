@@ -47,7 +47,9 @@ const Groups = () => {
           email:userData.email,
           type:userData.type,
           password:userData.password||'',
-          contact:userData.contact
+          contact:userData.contact,
+          state:userData.state,
+          district:userData.district
         }
         //console.log(data)
         // 📝 Editing existing user
