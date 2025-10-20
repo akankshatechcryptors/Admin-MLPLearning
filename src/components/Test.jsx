@@ -39,10 +39,14 @@ import {
 
 export default function TestSections() {
   const location = useLocation();
-  const testName = location.state?.testName || '';
+  const testName = location.state?.title || '';
   const testId = location.state?.id || '';
   const dateStart = location.state?.startDate || '';
   const [update, setUpdate] = useState(false);
+
+  //console.log('test ID: ',testId);
+  //console.log('test Name: ',testName);
+  
 
   // check restriction
   const today = new Date();

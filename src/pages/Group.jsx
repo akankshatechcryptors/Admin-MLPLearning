@@ -34,8 +34,9 @@ const Groups = () => {
   };
 
   const handleSaveUser = async (userData) => {
+    //console.log("Saving user data: ", userData);
     try {
-      if (userData.password) {
+      if (userData.formData.password) {
         userData.password = encryptPassword(userData.password);
       }
 
@@ -43,28 +44,39 @@ const Groups = () => {
       if (editingUser) {
         const data={
           id:editingUser.id,
-          fullname:userData.fullname,
-          email:userData.email,
+          fullname:userData.formData.fullname,
+          email:userData.formData.email,
           type:userData.type,
-          password:userData.password||'',
-          contact:userData.contact,
+          password:userData.formData.password||'',
+          contact:userData.formData.contact,
           state:userData.state,
           district:userData.district
         }
-        //console.log(data)
+        //console.log('user edited payload:  ',data)
         // 📝 Editing existing user
         res = await editUser(data);
+        //console.log("User edited:", res);
         //console.log(res.data.error)
+        handleUpdate()
         if(!res.data.error){
           toast.success(res.data.message)
         }
-        
         else{
           toast.error(res.data.message)
         }
       } else {
         // ➕ Adding new user
-        res = await addUser(userData);
+        const data={
+          fullname:userData.formData.fullname,
+          email:userData.formData.email,
+          type:userData.type,
+          password:userData.formData.password||'',
+          contact:userData.formData.contact,
+          state:userData.state,
+          district:userData.district
+        }
+        //console.log('user added payload: ',data);
+        res = await addUser(data);
         //console.log("User added:", res);
          if(!res.data.error){
           toast.success(res.data.message)

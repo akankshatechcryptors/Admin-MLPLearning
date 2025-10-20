@@ -87,7 +87,7 @@ function isRestricted(dateStart) {
     try {
       const data = { folder_id: folder_id, group_id: '' };
       const res = await getExam(data);
-      console.log(res.data.exams);
+      //console.log("getExam API called: ",res.data.exams);
       setTests(res.data.exams);
     } catch (error) {
       console.error(error);

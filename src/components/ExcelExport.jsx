@@ -5,7 +5,7 @@ import { Button } from '@mui/material';
 import DownloadIcon from '@mui/icons-material/Download';
 
 const ExportToExcelButton = ({ data = [], columns = [], fileName = 'exported_data' }) => {
-  console.log('excel upload')
+  //console.log('excel upload')
   const handleExport = () => {
     if (!data || data.length === 0) {
       console.warn("No data to export");

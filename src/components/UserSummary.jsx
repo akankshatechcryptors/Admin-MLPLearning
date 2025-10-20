@@ -42,7 +42,7 @@ const UserSummary = ({ user, test, onBack }) => {
   }, [user, test]);
    const handleDownload = () => {
     if (pdfUrl) {
-      console.log(pdfUrl)
+      //console.log(pdfUrl)
       saveAs(pdfUrl, `Certificate_${test.id || "NA"}.pdf`);
     }
   };
@@ -65,6 +65,35 @@ const UserSummary = ({ user, test, onBack }) => {
   const maxTotal = userModules.reduce((s, m) => s + m.maxMarks, 0);
   const passed = user.status==='pass';
 
+ const calcUserModules = (user, sections) => {
+  return sections.map((section) => {
+    const obtained = user.obtained || [];
+    const sectionData = obtained.find((o) => o.sectionId === section.id);
+    const timeSpent = sectionData?.time_spent || 0;
+
+    // Convert to HH:MM:SS
+    const hours = Math.floor(timeSpent / 3600);
+    const minutes = Math.floor((timeSpent % 3600) / 60);
+    const seconds = timeSpent % 60;
+    const formattedTime = `${hours}h ${minutes}m ${seconds}s`;
+
+    return {
+      id: section.id,
+      name: section.name,
+      timeSpent,
+      formattedTime,
+    };
+  });
+};
+
+function secondsToHoursMinutes(totalSeconds) {
+  const hours = Math.floor(totalSeconds / 3600);
+  const minutes = Math.floor((totalSeconds % 3600) / 60);
+  const seconds = totalSeconds % 60;
+  return `${hours}h ${minutes}m ${seconds}s`;
+}
+
+
   return (
     <Box>
       <Button onClick={onBack} sx={{ mb: 2 }} variant="outlined">
@@ -77,20 +106,21 @@ const UserSummary = ({ user, test, onBack }) => {
       <Divider sx={{ mb: 3 }} />
 
       {/* Module Performance Bar Chart */}
-      <Paper sx={{ p: 3, borderRadius: 3, boxShadow: 3, mb: 3 }}>
-        <Typography variant="subtitle1" gutterBottom>
-          Module Performance
-        </Typography>
-        <ResponsiveContainer width="100%" height={300}>
-          <BarChart data={userModules}>
-            <XAxis dataKey="name" angle={-45} textAnchor="end" height={80} />
-            <YAxis />
-            <Tooltip />
-            <Legend />
-            <Bar dataKey="obtained" fill={PASTEL_COLORS[2]} radius={[6, 6, 0, 0]} name="Obtained Marks" />
-          </BarChart>
-        </ResponsiveContainer>
-      </Paper>
+     <Paper sx={{ p: 2, borderRadius: 3, boxShadow: 3 }}>
+    <Typography variant="subtitle1" gutterBottom>
+      Module-wise Time Spent: {user.name}
+    </Typography>
+    <ResponsiveContainer width="100%" height={250}>
+      <BarChart data={calcUserModules(user, test.sections)}>
+        <XAxis dataKey="name" />
+        <YAxis domain={[0, Math.max(...user.obtained.map(o => o.time_spent || 0))]} />
+        <Tooltip formatter={(value) => secondsToHoursMinutes(value)} />
+        <Legend />
+        <Bar dataKey="timeSpent" fill={PASTEL_COLORS[2]} radius={[5, 5, 0, 0]} />
+      </BarChart>
+    </ResponsiveContainer>
+  </Paper>
+
 
       {/* Total Score */}
       <Typography
