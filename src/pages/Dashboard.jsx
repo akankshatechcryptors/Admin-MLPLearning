@@ -1,4 +1,4 @@
-import React, { useState, useEffect,useContext } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import {
   Box,
   Typography,
@@ -8,10 +8,18 @@ import {
   List,
   ListItem,
   ListItemText,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
+  Button
 } from '@mui/material';
+import FileDownloadIcon from "@mui/icons-material/FileDownload";
 import { Bar, Line, Pie } from 'react-chartjs-2';
 import LoadingScreen from '../components/Loading';
-import {useNavigate} from 'react-router-dom'
+import { useNavigate } from 'react-router-dom';
+import { getGroups } from '../common/api';
+import ExportToExcelButton from '../components/ExcelExport';
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -25,7 +33,7 @@ import {
   TimeScale,
 } from 'chart.js';
 import 'chartjs-adapter-date-fns'; // important for time axis
-import AuthContext from '../common/AuthContext'
+import AuthContext from '../common/AuthContext';
 import { Group } from '@mantine/core';
 import PeopleAltIcon from '@mui/icons-material/PeopleAlt';
 import AssignmentIcon from '@mui/icons-material/Assignment';
@@ -43,55 +51,67 @@ ChartJS.register(
   ArcElement,
   Tooltip,
   Legend,
-  TimeScale
+  TimeScale,
 );
 
 export default function AdminDashboard() {
-  const navigate=useNavigate()
+  const navigate = useNavigate();
   const [data, setData] = useState(null);
-  const auth=useContext(AuthContext)
+  const [Groups, setGroups] = useState([]);
+  const [formData,setFormData]=useState('')
+  const auth = useContext(AuthContext);
+  const getGroupdata = async () => {
+    try {
+      const res = await getGroups();
+      if (!res.data.error) setGroups(res.data.groups);
+    } catch (err) {
+      console.error('Failed to fetch groups:', err);
+    }
+  };
+
+  const fetchData = async () => {
+    const res = await dashboardApi();
+    setData(res.data);
+  };
   useEffect(() => {
-    const fetchData = async () => {
-      const res = await dashboardApi();
-      setData(res.data);
-    };
+    getGroupdata();
     fetchData();
   }, []);
 
   if (!data) return <LoadingScreen message={'Loading Dashboard'} />;
 
   // KPI Cards
-const stats = [
-  {
-    label: 'Total Users',
-    value: data.cards.totalUsers,
-    color: ['#3B82F6', '#60A5FA'], // blue gradient from Tailwind blue-500 → blue-400
-    icon: <PeopleAltIcon fontSize="large" />,
-    onClick: () => {
+  const stats = [
+    {
+      label: 'Total Users',
+      value: data.cards.totalUsers,
+      color: ['#3B82F6', '#60A5FA'], // blue gradient from Tailwind blue-500 → blue-400
+      icon: <PeopleAltIcon fontSize="large" />,
+      onClick: () => {
         if (auth.type === 'superadmin') {
           navigate('/users');
         } else {
           alert('You are not authorized to view users.');
         }
       },
-  },
-  {
-    label: 'Total Tests',
-    value: data.cards.totalExams,
-    color: ['#10B981', '#34D399'], // green gradient
-    icon: <AssignmentIcon fontSize="large" />,
-  },
-  {
-    label: 'Active Tests',
-    value: data.cards.activeExams,
-    color: ['#F59E0B', '#FBBF24'], // yellow gradient
-    icon: <PlayCircleIcon fontSize="large" />,
-  },
-  {
-    label: 'Certificates Issued',
-    value: data.cards.certificatesIssued,
-    color: ['#8B5CF6', '#A78BFA'], // purple gradient
-    icon: <WorkspacePremiumIcon fontSize="large" />,
+    },
+    {
+      label: 'Total Tests',
+      value: data.cards.totalExams,
+      color: ['#10B981', '#34D399'], // green gradient
+      icon: <AssignmentIcon fontSize="large" />,
+    },
+    {
+      label: 'Active Tests',
+      value: data.cards.activeExams,
+      color: ['#F59E0B', '#FBBF24'], // yellow gradient
+      icon: <PlayCircleIcon fontSize="large" />,
+    },
+    {
+      label: 'Certificates Issued',
+      value: data.cards.certificatesIssued,
+      color: ['#8B5CF6', '#A78BFA'], // purple gradient
+      icon: <WorkspacePremiumIcon fontSize="large" />,
       onClick: () => {
         if (auth.type === 'superadmin') {
           navigate('/certificates');
@@ -99,8 +119,8 @@ const stats = [
           alert('You are not authorized to view users.');
         }
       },
-  },
-];
+    },
+  ];
 
   // Student Growth Line Chart
   const studentGrowthData = {
@@ -156,58 +176,58 @@ const stats = [
   };
 
   // Test Performance Bar Chart
-const testPerformanceData = {
-  labels: data.averagePassedStudents.map((item) => `${item.title}` || "N/A"),
-  datasets: [
-    {
-      label: "Avg Passing Rate (%)",
-      data: data.averagePassedStudents.map(
-        (item) => (item.avg_passed_students_per_exam || 0) * 100 // convert 0.25 → 25%
-      ),
-      backgroundColor: [
-        "#3B82F6",
-        "#10B981",
-        "#F59E0B",
-        "#8B5CF6",
-        "#EF4444",
-      ],
-      borderRadius: 8,
+  const testPerformanceData = {
+    labels: data.averagePassedStudents.map((item) => `${item.title}` || 'N/A'),
+    datasets: [
+      {
+        label: 'Avg Passing Rate (%)',
+        data: data.averagePassedStudents.map(
+          (item) => (item.avg_passed_students_per_exam || 0) * 100, // convert 0.25 → 25%
+        ),
+        backgroundColor: [
+          '#3B82F6',
+          '#10B981',
+          '#F59E0B',
+          '#8B5CF6',
+          '#EF4444',
+        ],
+        borderRadius: 8,
 
-      // keep arrays for tooltip reference
-      totalAlloted: data.averagePassedStudents.map(
-        (item) => item.total_alloted_users || 0
-      ),
-      totalPassed: data.averagePassedStudents.map(
-        (item) => item.total_passed_users || 0
-      ),
-    },
-  ],
-};
+        // keep arrays for tooltip reference
+        totalAlloted: data.averagePassedStudents.map(
+          (item) => item.total_alloted_users || 0,
+        ),
+        totalPassed: data.averagePassedStudents.map(
+          (item) => item.total_passed_users || 0,
+        ),
+      },
+    ],
+  };
 
-const options = {
-  responsive: true,
-  maintainAspectRatio: false, // <-- very important for full width
-  plugins: {
-    tooltip: {
-      callbacks: {
-        label: function (context) {
-          const dataset = context.dataset;
-          const index = context.dataIndex;
+  const options = {
+    responsive: true,
+    maintainAspectRatio: false, // <-- very important for full width
+    plugins: {
+      tooltip: {
+        callbacks: {
+          label: function (context) {
+            const dataset = context.dataset;
+            const index = context.dataIndex;
 
-          const avg = dataset.data[index];
-          const allotted = dataset.totalAlloted[index];
-          const passed = dataset.totalPassed[index];
+            const avg = dataset.data[index];
+            const allotted = dataset.totalAlloted[index];
+            const passed = dataset.totalPassed[index];
 
-          return [
-            `Avg Passing Rate: ${avg}%`,
-            `Total Allotted: ${allotted}`,
-            `Total Passed: ${passed}`,
-          ];
+            return [
+              `Avg Passing Rate: ${avg}%`,
+              `Total Allotted: ${allotted}`,
+              `Total Passed: ${passed}`,
+            ];
+          },
         },
       },
     },
-  },
-};
+  };
 
   // Certificates Pie Chart
   const certificatePieData = {
@@ -234,36 +254,57 @@ const options = {
 
   return (
     <Box className="p-[2vw] bg-gradient-to-br from-gray-50 to-gray-100 min-h-screen">
-      <Group position="apart" className="mb-4" style={{ alignItems: 'center' }}>
-        <BreadCrumbs />  
-      </Group>
+      <Group position="apart" className="mb-4" style={{ alignItems: "center" }}>
+      {/* 🧭 Breadcrumb Section */}
+      <BreadCrumbs />
+
+      {/* 🔽 Group Dropdown */}
+      <FormControl
+        size="small"
+        sx={{ minWidth: 200, marginRight: 2 }}
+      >
+        <InputLabel>Group*</InputLabel>
+        <Select
+          value={formData}
+          onChange={(e) => setFormData(e.target.value)}
+          label="Group*"
+        >
+          {Groups.map((group) => (
+            <MenuItem key={group.id} value={group.id}>
+              {group.title}
+            </MenuItem>
+          ))}
+        </Select>
+      </FormControl>
+<ExportToExcelButton/>
+    </Group>
 
       {/* KPI Cards */}
       <Grid container spacing={3} mb={4}>
         {stats.map((s, i) => (
-          <Grid item size={{xs:6, sm:3}} key={i}>
-              <Paper
+          <Grid item size={{ xs: 6, sm: 3 }} key={i}>
+            <Paper
               onClick={s.onClick}
-  sx={{
-    p: 6, // padding
-    borderRadius: '20px', // Tailwind's 2xl ≈ 1rem * 2? or use 16px-24px
-    boxShadow: 3, // Tailwind shadow-md
-    background: `linear-gradient(to right, ${s.color})`,
-    color: 'white',
-    display: 'flex',
-    flexDirection: 'column',
-    alignItems: 'center',
-    justifyContent: 'center',
-    height: 160, // h-40 ≈ 10rem = 160px
-    backdropFilter: 'blur(5px)',
-    backgroundOpacity: 0.9, // MUI doesn't support directly, handled via rgba
-    transition: 'all 0.3s ease',
-    '&:hover': {
-      boxShadow: 6, // shadow-xl
-      transform: 'translateY(-4px)',
-    },
-  }}
-              >
+              sx={{
+                p: 6, // padding
+                borderRadius: '20px', // Tailwind's 2xl ≈ 1rem * 2? or use 16px-24px
+                boxShadow: 3, // Tailwind shadow-md
+                background: `linear-gradient(to right, ${s.color})`,
+                color: 'white',
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                justifyContent: 'center',
+                height: 160, // h-40 ≈ 10rem = 160px
+                backdropFilter: 'blur(5px)',
+                backgroundOpacity: 0.9, // MUI doesn't support directly, handled via rgba
+                transition: 'all 0.3s ease',
+                '&:hover': {
+                  boxShadow: 6, // shadow-xl
+                  transform: 'translateY(-4px)',
+                },
+              }}
+            >
               <Box className="mb-2">{s.icon}</Box>
               <Typography variant="h5" fontWeight={700}>
                 {s.value}
@@ -278,14 +319,14 @@ const options = {
 
       <Grid container spacing={3}>
         {/* Student Growth */}
-        <Grid item size={{xs:12, sm:8,md:8}}>
+        <Grid item size={{ xs: 12, sm: 8, md: 8 }}>
           <Paper className="p-4 rounded-2xl shadow-md h-full bg-white">
             <Typography variant="subtitle1" fontWeight={700} mb={2}>
               📈 Student Growth
             </Typography>
             <Box sx={{ height: 280, position: 'relative' }}>
               <Line
-                key={data.curveChart.map(d => d.total_users).join('-')}
+                key={data.curveChart.map((d) => d.total_users).join('-')}
                 data={studentGrowthData}
                 options={studentGrowthOptions}
               />
@@ -294,7 +335,7 @@ const options = {
         </Grid>
 
         {/* Certificates Pie */}
-        <Grid item size={{xs:12, sm:4,md:4}} >
+        <Grid item size={{ xs: 12, sm: 4, md: 4 }}>
           <Paper className="p-4 rounded-2xl shadow-md h-full bg-white">
             <Typography variant="subtitle1" fontWeight={700} mb={2}>
               🏆 Certificates Status
@@ -316,14 +357,14 @@ const options = {
         </Grid>
 
         {/* Test Performance */}
-        <Grid item size={{xs:12, sm:12,md:12}}>
+        <Grid item size={{ xs: 12, sm: 12, md: 12 }}>
           <Paper className="p-4 rounded-2xl shadow-md h-full bg-white">
             <Typography variant="subtitle1" fontWeight={700} mb={2}>
               📊 Test Performance
             </Typography>
-            <Box sx={{width:"100%", height: 280, position: 'relative' }}>
+            <Box sx={{ width: '100%', height: 280, position: 'relative' }}>
               <Bar
-                key={data.averagePassedStudents.map(i => i.score).join('-')}
+                key={data.averagePassedStudents.map((i) => i.score).join('-')}
                 data={testPerformanceData}
                 options={options}
               />

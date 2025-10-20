@@ -26,13 +26,13 @@ const Home = () => {
       bgColor: 'bg-gradient-to-br from-gray-100 to-gray-200',
       path: '/summary',
     },
-    {
-      title: 'Tests',
-      subtitle: 'Administer and review assessments',
-      icon: <AssignmentIcon />,
-      bgColor: 'bg-gradient-to-br from-indigo-100 to-indigo-200',
-      path: '/tests',
-    },
+    // {
+    //   title: 'Tests',
+    //   subtitle: 'Administer and review assessments',
+    //   icon: <AssignmentIcon />,
+    //   bgColor: 'bg-gradient-to-br from-indigo-100 to-indigo-200',
+    //   path: '/tests',
+    // },
    
   ];
 
