@@ -42,6 +42,7 @@ const AllotTestModal = ({ open, onClose, onSubmit, selectedTest, error, disable,
   useEffect(() => {
     getGroupdata();
   }, []);
+
   const handleChange = (field, value) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
   };

@@ -38,8 +38,13 @@ const Users = () => {
     if (editingGroup) {
       // Edit group: only send id and new title
       try {
-        const data = { id: editingGroup.id, title: newGroup.title };
-        await editGroup(data);
+        const data = { group_id: editingGroup.id, title: newGroup.title,registration_limit: newGroup.registration_limit,
+      start_date: newGroup.start_date,
+      end_date:newGroup.end_date };
+      //console.log('edit data: ',data);
+      
+        const res=await editGroup(data);
+        //console.log("updated group data: ",res);
         handleUpdate();
       } catch (err) {
         console.error("Failed to edit group:", err);
@@ -47,8 +52,11 @@ const Users = () => {
     } else {
       // Create new group
       try {
-        const data = { title: newGroup.title };
-        await addGroup(data);
+        const data = { title: newGroup.title,registration_limit: newGroup.registration_limit,
+      start_date: newGroup.start_date,
+      end_date:newGroup.end_date };
+       const res= await addGroup(data);
+        //console.log("created group data: ",res);
         handleUpdate();
       } catch (err) {
         console.error("Failed to add group:", err);
@@ -71,6 +79,9 @@ const Users = () => {
   const handleDeleteGroup = (id) => {
     setGroups(groups.filter((g) => g.id !== id));
   };
+
+  
+
 
   return (
     <div className="p-[2vw] bg-gray-50 min-h-screen">
@@ -108,6 +119,8 @@ const Users = () => {
               onView={() => handleViewGroup(group.title, group.id)}
               onEdit={() => handleEditGroup(group)}
               onDelete={() => handleDeleteGroup(group.id)}
+              start_date={group.start_date}
+              end_date={group.end_date}
             />
           ))}
         </div>

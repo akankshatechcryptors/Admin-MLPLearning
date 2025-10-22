@@ -24,17 +24,21 @@ import {
   getGroups,
   addToGroup,
   removeFromGroup,
+  getExam
 } from '../common/api.js';
 import { toast } from 'react-toastify';
 import { Cell } from 'recharts';
+import { FenceTwoTone } from '@mui/icons-material';
 
 const GroupDetails = ({ onEditClick }) => {
   const [users, setUsers] = useState([]);
   const [allGroups, setAllGroups] = useState([]);
   const [selectedGroupsMap, setSelectedGroupsMap] = useState({}); // {userEmail: [groupIds]}
   const [changedUsers, setChangedUsers] = useState({}); // track changed selections
+  const [tests, setTests] = useState({});
   const [confirmAction, setConfirmAction] = useState(null);
   const [update, setUpdate] = useState(false);
+  const[loading,setLoading]=useState(false);
   const theme = useMantineTheme();
   const location = useLocation();
   const { state } = location;
@@ -43,11 +47,27 @@ const GroupDetails = ({ onEditClick }) => {
   const navigate=useNavigate()
   const handleUpdate = () => setUpdate(!update);
 
+  // Fetch all groups
+  const fetchGroups = async () => {
+    setLoading(true);
+    try {
+      const res = await getGroups();
+      if (!res.data.error) {
+        setAllGroups(res.data.groups);
+      // console.log('getGroups API Called: ',res);
+       setLoading(false);
+      }
+    } catch (err) {
+      console.error('Error fetching groups:', err);
+    }
+  };
+  
   // Fetch users
   const fetchUsers = async () => {
+    setLoading(true);
     try {
       const res = await getUsers({ group_id: groupId });
-      //console.log(res);
+     // console.log("getUsers API Called: ",res);
       if (!res.data.error) {
         const mappedUsers = res.data.users.map((u) => ({
           ...u,
@@ -64,29 +84,42 @@ const GroupDetails = ({ onEditClick }) => {
         setSelectedGroupsMap(map);
         setChangedUsers({}); // reset change flags
       }
+      setLoading(false);
     } catch (err) {
       console.error('Error fetching users:', err);
     }
   };
 
-  // Fetch all groups
-  const fetchGroups = async () => {
-    try {
-      const res = await getGroups();
-      if (!res.data.error) {
-        setAllGroups(res.data.groups);
+//console.log("groupId: ",groupId);
+  const getExams = async () => {
+    setLoading(true);
+      try {
+        const data = { folder_id: '', group_id_admin: groupId };
+        const res = await getExam(data);
+        //console.log("getExam API called: ",res.data.exams);
+        setTests(res.data.exams);
+        setLoading(false);
+      } catch (error) {
+        console.error(error);
       }
-    } catch (err) {
-      console.error('Error fetching groups:', err);
-    }
-  };
+    };
+
+    
 
   useEffect(() => {
-    fetchUsers();
     fetchGroups();
+    fetchUsers();
+    getExams();
   }, [groupId, update]);
 
-  const handleEdit = (user) => onEditClick(user);
+   
+
+  const handleEdit = (user) => 
+    {
+      onEditClick(user);
+     // console.log("users: ",users);
+    };
+    
   const handleDelete = (user) => setConfirmAction({ type: 'deleteUser', user });
   const handleRemoveFromGroup = (user, group) => {
     setConfirmAction({ type: 'removeFromGroup', user, group });
@@ -362,6 +395,13 @@ const GroupDetails = ({ onEditClick }) => {
     mantinePaginationProps: { size: 'lg', radius: 'lg' },
   });
 
+if(loading){
+  return (
+    <Box sx={{ padding: 2, textAlign: 'center' }}>
+      <Typography variant="h6">Loading...</Typography>
+    </Box>
+  );
+}
   return (
     <Box sx={{ padding: 0 }}>
       {!groupName && (
@@ -385,10 +425,8 @@ const GroupDetails = ({ onEditClick }) => {
     onClick={() =>
       navigate("/add-questions", {
         state: {
-          testName: users[0]?.groups[0]?.title,
-          instructions: users[0]?.groups[0]?.description,
-          id: users[0]?.groups[0]?.exam_id,
-          startDate: users[0]?.groups[0]?.start_date,
+          title: tests[0]?.title,
+          id: tests[0]?.id,
         },
       })
     }
@@ -407,7 +445,7 @@ const GroupDetails = ({ onEditClick }) => {
     }}
   >
     <Typography variant="h6" fontWeight="bold">
-     Exam :-  {users[0]?.groups[0]?.title}
+     Exam :-  {tests[0]?.title}
     </Typography>
   </Box>
 )}

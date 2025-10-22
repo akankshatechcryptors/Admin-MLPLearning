@@ -16,6 +16,7 @@ import { useDropzone } from 'react-dropzone';
 import CloudUploadIcon from '@mui/icons-material/CloudUpload';
 import State from '../common/State'
 import District from '../common/District'
+import SpecialityDropdown from './SpecialityDropdown';
 const AddOrUploadUserModal = ({
   open,
   onClose,
@@ -26,38 +27,51 @@ const AddOrUploadUserModal = ({
 }) => {
   const isEditMode = Boolean(initialData);
   const [tab, setTab] = useState(0);
-  const [state,setState]=useState(null)
-  const [dist,setDist]=useState(null)
+  const [state,setState]=useState(null);
+  const [dist,setDist]=useState(null);
+  const [type,setType]=useState(null);
   const [formData, setFormData] = useState({
     fullname: '',
     email: '',
     password: '',
-    type: '',
+    type: type,
     contact: '',
     group_id: groupId || '',
     state:state,
     district:dist
   });
 
+  //console.log("formdata: ",formData);
+  
   useEffect(() => {
     if (initialData) {
+      //console.log('initial data for s/d: ',initialData);
       setFormData(initialData);
-      setTab(0); // force single user form in edit mode
+      setState(initialData.state);
+      setDist(initialData.district);
+      setType(initialData.type);
+      setTab(0); 
+      
+      // force single user form in edit mode
     } else {
-      setFormData({ fullname: '', email: '', password: '', type: '', contact: '', group_id: groupId || '' ,state:"",district:""});
+      setFormData({ fullname: '', email: '', password: '', contact: '', group_id: groupId || ''})
+      setState('')
+      setDist('');
+      setType('');
     }
   }, [initialData, groupId]);
 
   const handleChange = (field, value) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
   };
-console.log("hii" ,formData)
+//console.log("hii" ,formData)
+//console.log({formData,state:state,district:dist,type:type});
   const handleSingleSubmit = () => {
-    if (!formData.fullname || !formData.email || !formData.type || !formData.contact) {
+    if (!formData.fullname || !formData.email || !type || !formData.contact) {
       alert('Please fill all required fields');
       return;
     }
-    onSaveSingle?.(formData);
+    onSaveSingle?.({formData,state:state,district:dist,type:type});
     onClose();
   };
 
@@ -112,65 +126,8 @@ const onDrop = (acceptedFiles) => {
             />
             <State value={state} handleChange={(e)=>setState(e.target.value)}/>
             <District selectedState={state} handleChange={e=>setDist(e.target.value)} value={dist}/>
-            <TextField
-              select
-              label="Speciality"
-              value={formData.type}
-              onChange={(e) => handleChange('type', e.target.value)}
-              fullWidth
-            >
-              {/* <MenuItem value="doctor">Doctor</MenuItem>
-              <MenuItem value="physician">Physician</MenuItem>
-              <MenuItem value="marketeer">Marketeer</MenuItem>
-              <MenuItem value="others">Others</MenuItem> */}
-                 <MenuItem value="allergy">Allergy</MenuItem>
-                <MenuItem value="alternative-complementary-medicine">Alternative / Complementary Medicine</MenuItem>
-                <MenuItem value="anesthesiology">Anesthesiology</MenuItem>
-                <MenuItem value="cardiology">Cardiology</MenuItem>
-                <MenuItem value="critical-care-and-intensive-care">Critical Care and Intensive Care</MenuItem>
-                <MenuItem value="cytology">Cytology</MenuItem>
-                <MenuItem value="dentistry">Dentistry</MenuItem>
-                <MenuItem value="dermatology">Dermatology</MenuItem>
-                <MenuItem value="diabetes-mellitus-diabetes-insipidus">Diabetes Mellitus / Diabetes Insipidus</MenuItem>
-                <MenuItem value="endocrinology">Endocrinology</MenuItem>
-                <MenuItem value="forensic-medicine">Forensic Medicine</MenuItem>
-                <MenuItem value="gastroenterology">Gastroenterology</MenuItem>
-                <MenuItem value="gerontology-geriatrics">Gerontology / Geriatrics</MenuItem>
-                <MenuItem value="hematology">Hematology</MenuItem>
-                <MenuItem value="immunology-serology">Immunology & Serology</MenuItem>
-                <MenuItem value="infectious-disease">Infectious Disease</MenuItem>
-                <MenuItem value="internal-medicine">Internal Medicine</MenuItem>
-                <MenuItem value="laboratory-medicine">Laboratory Medicine</MenuItem>
-                <MenuItem value="metabolism">Metabolism</MenuItem>
-                <MenuItem value="microbiology">Microbiology</MenuItem>
-                <MenuItem value="neonatology">Neonatology</MenuItem>
-                <MenuItem value="nephrology">Nephrology</MenuItem>
-                <MenuItem value="neurology">Neurology</MenuItem>
-                <MenuItem value="nutrition">Nutrition</MenuItem>
-                <MenuItem value="obstetrics-gynecology">Obstetrics & Gynecology</MenuItem>
-                <MenuItem value="oncology">Oncology</MenuItem>
-                <MenuItem value="ophthalmology">Ophthalmology</MenuItem>
-                <MenuItem value="orthopedics">Orthopedics</MenuItem>
-                <MenuItem value="otorhinolaryngology">Otorhinolaryngology</MenuItem>
-                <MenuItem value="pain-management">Pain Management</MenuItem>
-                <MenuItem value="patient-education">Patient Education</MenuItem>
-                <MenuItem value="pediatrics">Pediatrics</MenuItem>
-                <MenuItem value="pharmacology">Pharmacology</MenuItem>
-                <MenuItem value="physical-medicine-rehab">Physical Medicine & Rehab</MenuItem>
-                <MenuItem value="podiatry">Podiatry</MenuItem>
-                <MenuItem value="practice-management">Practice Management</MenuItem>
-                <MenuItem value="primary-care">Primary Care</MenuItem>
-                <MenuItem value="psychiatry">Psychiatry</MenuItem>
-                <MenuItem value="radiology">Radiology</MenuItem>
-                <MenuItem value="respiratory-medicine">Respiratory Medicine</MenuItem>
-                <MenuItem value="rheumatology">Rheumatology</MenuItem>
-                <MenuItem value="sports-medicine">Sports Medicine</MenuItem>
-                <MenuItem value="surgery">Surgery</MenuItem>
-                <MenuItem value="tropical-medicine">Tropical Medicine</MenuItem>
-                <MenuItem value="urology">Urology</MenuItem>
-                <MenuItem value="virology">Virology</MenuItem>
-                <MenuItem value="others">Others</MenuItem>
-            </TextField>
+
+            <SpecialityDropdown value={type} handleChange={(e)=>setType(e.target.value)} /> 
             <TextField
               label="Contact"
               value={formData.contact}

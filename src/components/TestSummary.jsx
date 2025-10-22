@@ -83,16 +83,12 @@ const getStatusPieData = (users) => {
     { name: "Pending", value: pending },
   ];
 };
-const getGroupStatusCounts = (users) => {
+ const getGroupStatusCounts = (users) => {
   const pass = (users || []).filter(u => u.status === "pass").length;
   const fail = (users || []).filter(u => u.status === "fail").length;
   const pending = (users || []).filter(u => !u.status).length; // unattempted
   return { pass, fail, pending };
 };
-
-
-
-
 
 const TestSummary = ({ test, onGroupSelect }) => {
   //console.log(test)

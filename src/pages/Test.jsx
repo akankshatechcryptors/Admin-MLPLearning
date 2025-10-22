@@ -58,7 +58,7 @@ export default function TestPage() {
     const data = { folder_id: "", group_id: "" };
     try {
       const res = await getExam(data);
-      console.log(res)
+     // console.log(res)
       setUnassignedTests(res.data.exams);
       setLoading(false)
     } catch (error) {

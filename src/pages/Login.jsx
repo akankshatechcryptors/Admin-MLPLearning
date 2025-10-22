@@ -27,8 +27,8 @@ const handleLogin = async (e) => {
 
   // 🔐 Encrypt the password entered by user
   const encryptedPassword = encryptPassword(password);
-  console.log(password)
-  console.log(encryptedPassword)
+  //console.log(password)
+  //console.log(encryptedPassword)
   const data = {
     email: email,
     password: encryptedPassword,

@@ -16,47 +16,87 @@ import { useNavigate } from 'react-router-dom';
 
 const CreateGroupModal = ({ open, onClose, onSubmit, initialData }) => {
   const [groupName, setGroupName] = useState('');
-  const [excelFile, setExcelFile] = useState(null);
+  const [userLimit, setUserLimit] = useState('');
+  const [startDate, setStartDate] = useState('');
+  const [endDate, setEndDate] = useState('');
   const navigate = useNavigate();
 
   // Fill form if editing
   useEffect(() => {
     if (initialData) {
       setGroupName(initialData.title || '');
-      setExcelFile(initialData.file || null);
+      setUserLimit(initialData.registration_limit || '');
+      setStartDate(initialData.start_date || '');
+      setEndDate(initialData.end_date || '');
     } else {
       setGroupName('');
-      setExcelFile(null);
+      setUserLimit('');
+      setStartDate('');
+      setEndDate('');
     }
   }, [initialData]);
 
+  //console.log('initial data: ',initialData)
+
+  const formatDate = (dateString) => {
+  if (!dateString) return '';
+  return new Date(dateString).toISOString().split('T')[0];
+};
+
   const handleSubmit = () => {
-    if (groupName) {
-      onSubmit({
-        title: groupName,
-        file: excelFile,
-        count: initialData?.count || 0, // Keep doctor count when editing
-        id: initialData?.id, // Keep id for editing
-      });
-
-      toast.success(
-        initialData ? 'Group updated successfully!' : 'Group created successfully!',
-        {
-          position: 'top-right',
-          autoClose: 2000,
-          onClose: () => {
-            setGroupName('');
-            setExcelFile(null);
-            navigate('/groups');
-          },
-        }
-      );
+    if (!groupName) {
+      toast.error("Please enter group name");
+      return;
     }
+    if (!startDate || !endDate) {
+      toast.error("Please select start and end dates");
+      return;
+    }
+    if (new Date(endDate) < new Date(startDate)) {
+      toast.error("End date cannot be earlier than start date");
+      return;
+    }
+    const today = new Date();
+today.setHours(0, 0, 0, 0);
+
+const selected = new Date(startDate);
+selected.setHours(0, 0, 0, 0);
+
+if (selected < today) {
+  toast.error("Start date cannot be in the past");
+  return;
+}
+
+
+   // console.log('start date: ',new Date(startDate));
+    //console.log('current date: ', Date.now());
+
+    onSubmit({
+      title: groupName,
+      registration_limit: userLimit,
+      start_date:startDate,
+      end_date:endDate,
+      count: initialData?.count || 0,
+      id: initialData?.id,
+    });
+
+    toast.success(
+      initialData ? "Group updated successfully!" : "Group created successfully!",
+      {
+        position: "top-right",
+        autoClose: 2000,
+        onClose: () => {
+          setGroupName("");
+          setUserLimit("");
+          setStartDate("");
+          setEndDate("");
+          navigate("/groups");
+        },
+      }
+    );
   };
 
-  const handleFileChange = (e) => {
-    setExcelFile(e.target.files[0]);
-  };
+
 
   return (
     <Modal
@@ -103,26 +143,51 @@ const CreateGroupModal = ({ open, onClose, onSubmit, initialData }) => {
           </div>
 
           <div>
-            <InputLabel className="text-sm font-medium text-gray-700 mb-2 p-5">
-              Upload Users (Excel)
+            <InputLabel className="text-sm font-medium text-gray-700 mb-2">
+              User Registeration Limit
             </InputLabel>
-            <input
-              type="file"
-              accept=".xlsx, .xls"
-              onChange={handleFileChange}
-              className="block w-full text-sm text-gray-900 border border-gray-300 cursor-pointer p-3 rounded-full bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            <TextField
+              fullWidth
+              variant="outlined"
+              placeholder="Enter user limit"
+              value={userLimit}
+              onChange={(e) => setUserLimit(e.target.value)}
+              sx={{
+                borderRadius: '50px',
+                '& .MuiOutlinedInput-root': {
+                  padding: '0px',
+                },
+              }}
             />
-            {excelFile && (
-              <p className="mt-2 text-sm text-gray-600">
-                Selected File:{' '}
-                <span className="font-medium">
-                  {excelFile.name || 'Previously uploaded file'}
-                </span>
-              </p>
-            )}
+          <div className='pt-4'>
+            
+            <TextField
+              label="Start date of the test*"
+              type="date"
+              fullWidth
+              margin="dense"
+              InputLabelProps={{ shrink: true }}
+              value={formatDate(startDate)}
+              onChange={(e) => setStartDate(e.target.value)}
+            />
+            </div>
+            <div className='pt-4'>
+
+            <TextField
+              label="End date of the test*"
+              type="date"
+              fullWidth
+              margin="dense"
+              InputLabelProps={{ shrink: true }}
+              value={formatDate(endDate)}
+              onChange={(e) => setEndDate(e.target.value)}
+            />
+
+
+          </div>
           </div>
 
-          {!initialData && (
+          {/*   {!initialData && (
             <a
               href="/userlist_format.xlsx"
               download="sample_users.xlsx"
@@ -130,7 +195,7 @@ const CreateGroupModal = ({ open, onClose, onSubmit, initialData }) => {
             >
               Download Sample
             </a>
-          )}
+          )} */}
         </div>
 
         <div className="flex justify-end gap-3 pt-4">
