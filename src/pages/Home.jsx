@@ -41,7 +41,7 @@ const Home = () => {
   const superAdminCards = [
     {
       title: 'Users',
-      subtitle: 'Manage doctors, observers, and group participants',
+      subtitle: 'Manage doctors, users, and cme/cpd programs participants',
       icon: <VerifiedUserRoundedIcon />,
       bgColor: 'bg-gradient-to-br from-amber-100 to-amber-200',
       path: '/users',
@@ -58,7 +58,7 @@ const Home = () => {
       subtitle: 'Organize and manage continuing education groups',
       icon: <SchoolIcon />,
       bgColor: 'bg-gradient-to-br from-sky-100 to-sky-200',
-      path: '/groups',
+      path: '/programs',
     },
   ];
 

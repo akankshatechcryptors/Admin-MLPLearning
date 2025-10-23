@@ -16,6 +16,7 @@ import {
   TableHead,
   TableRow,
   Paper,
+  Grid,
 } from '@mui/material';
 import { motion } from 'framer-motion';
 import { useLocation } from 'react-router-dom';
@@ -23,10 +24,14 @@ import { getUsers, imgUrl, downloadCertificate } from '../common/api';
 import Breadcrumbs from './BreadCrumb';
 import { encryptFilename } from '../common/pdfCrypt';
 import VisibilityIcon from '@mui/icons-material/Visibility';
+import State from '../common/State';
+import District from '../common/District';
 
 const Certificates = () => {
   const [users, setUsers] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
+  const [state, setState] = useState('');
+  const [dist, setDist] = useState('');
   const location = useLocation();
   const group_id = location?.state?.group_id || '';
   const [openPdf, setOpenPdf] = useState(false);
@@ -35,7 +40,7 @@ const Certificates = () => {
 
   const fetchUsers = async () => {
     try {
-      const res = await getUsers({ group_id:group_id });
+      const res = await getUsers({ group_id });
       setUsers(res.data.users || []);
     } catch (err) {
       console.error('Error fetching users:', err);
@@ -43,7 +48,7 @@ const Certificates = () => {
   };
 
   useEffect(() => {
-  fetchUsers();
+    fetchUsers();
   }, [group_id]);
 
   const handleOpenPdf = (url) => {
@@ -78,15 +83,19 @@ const Certificates = () => {
     }
   };
 
-  // Filter users based on search term
+  // Process & filter users
   const filteredUsers = users
     .map((user) => ({
       ...user,
       passedExams: user.groups?.filter((exam) => exam.status === 'pass') || [],
     }))
-    .filter((user) => user.fullname.toLowerCase().includes(searchTerm.toLowerCase()));
+    .filter((user) => {
+      const matchName = user.fullname.toLowerCase().includes(searchTerm.toLowerCase());
+      const matchState = state ? user.state === state : true;
+      const matchDistrict = dist ? user.district === dist : true;
+      return matchName && matchState && matchDistrict;
+    });
 
-  // Count total passed certificates
   const totalCertificates = filteredUsers.reduce(
     (acc, user) => acc + user.passedExams.length,
     0
@@ -110,19 +119,56 @@ const Certificates = () => {
         )}
       </Box>
 
-      {/* User count & Search */}
-      <Box className="mb-4 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
-        <Typography variant="subtitle1" fontWeight="bold">
-          Total Certificates: {totalCertificates}
-        </Typography>
-        <TextField
-          label="Search Users"
-          variant="outlined"
-          size="small"
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          sx={{ maxWidth: 300 }}
-        />
+      {/* Filters */}
+      <Box className="mb-4">
+        <Grid
+          container
+          spacing={2}
+          alignItems="center"
+          justifyContent="space-between"
+        >
+           <Grid item  size={{xs:12,sm:4,md:3}}>
+            <Typography variant="subtitle1" fontWeight="bold">
+              Total Certificates: {totalCertificates}
+            </Typography>
+          </Grid>
+          <Grid
+            item
+            size={{xs:12,sm:8,md:9}}
+            display="flex"
+            justifyContent="flex-end"
+            alignItems="center"
+            gap={1}
+          >
+
+             <TextField
+             fullWidth
+              variant="outlined"
+              label="Search Users"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+                sx={{
+                borderRadius: '50px',
+                '& .MuiOutlinedInput-root': {
+                  padding: '0px',
+                },
+              }}
+            />
+            <State
+              value={state}
+              handleChange={(e) => {
+                setState(e.target.value);
+                setDist('');
+              }}
+            />
+            <District
+              selectedState={state}
+              handleChange={(e) => setDist(e.target.value)}
+              value={dist}
+            />
+           
+          </Grid>
+        </Grid>
       </Box>
 
       {/* Table */}
@@ -132,6 +178,8 @@ const Certificates = () => {
             <TableRow sx={{ backgroundColor: '#f3f4f6' }}>
               <TableCell><Typography fontWeight="bold">S.No</Typography></TableCell>
               <TableCell><Typography fontWeight="bold">User Name</Typography></TableCell>
+              <TableCell><Typography fontWeight="bold">State</Typography></TableCell>
+              <TableCell><Typography fontWeight="bold">District</Typography></TableCell>
               <TableCell><Typography fontWeight="bold">Exam Title</Typography></TableCell>
               <TableCell align="right"><Typography fontWeight="bold">Actions</Typography></TableCell>
             </TableRow>
@@ -139,8 +187,8 @@ const Certificates = () => {
           <TableBody>
             {filteredUsers.length === 0 && (
               <TableRow>
-                <TableCell colSpan={4} align="center">
-                  No records found
+                <TableCell colSpan={6} align="center">
+                  No users found
                 </TableCell>
               </TableRow>
             )}
@@ -161,10 +209,15 @@ const Certificates = () => {
                   >
                     <TableCell>{serialNumber}</TableCell>
                     <TableCell>{user.fullname}</TableCell>
+                    <TableCell>{user.state || '-'}</TableCell>
+                    <TableCell>{user.district || '-'}</TableCell>
                     <TableCell>{exam.title}</TableCell>
                     <TableCell align="right">
                       <Tooltip title="View Certificate">
-                        <IconButton onClick={() => handleOpenPdf(certificateUrl)} color="primary">
+                        <IconButton
+                          onClick={() => handleOpenPdf(certificateUrl)}
+                          color="primary"
+                        >
                           <VisibilityIcon />
                         </IconButton>
                       </Tooltip>
@@ -177,7 +230,7 @@ const Certificates = () => {
         </Table>
       </TableContainer>
 
-      {/* PDF Modal */}
+      {/* PDF Viewer */}
       <Dialog open={openPdf} onClose={handleClosePdf} maxWidth="lg" fullWidth>
         <DialogContent style={{ padding: 0 }}>
           {selectedPdf && (

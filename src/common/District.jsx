@@ -221,6 +221,7 @@ const DistrictDropdown = ({ selectedState, value, handleChange, imp }) => {
   return (
     <>
       <Autocomplete
+      fullWidth
         key={selectedState} // re-render when state changes
         freeSolo
        disabled={!selectedState || selectedState === "Other"} // disable if "Other"

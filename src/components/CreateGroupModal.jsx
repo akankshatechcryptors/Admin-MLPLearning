@@ -123,7 +123,7 @@ const CreateGroupModal = ({ open, onClose, onSubmit, initialData }) => {
           variant="h5"
           className="font-bold text-gray-800 text-center"
         >
-          {initialData ? 'Edit Group' : 'Create New Group'}
+          {initialData ? 'Edit Program' : 'Create CME/ CPD Program'}
         </Typography>
 
         <Divider className="p-3 text-gray-700" />
@@ -131,12 +131,12 @@ const CreateGroupModal = ({ open, onClose, onSubmit, initialData }) => {
         <div className="space-y-4">
           <div>
             <InputLabel className="text-sm font-medium text-gray-700 mb-2">
-              Group Name
+              CME / CPD Program Name
             </InputLabel>
             <TextField
               fullWidth
               variant="outlined"
-              placeholder="Enter group name"
+              placeholder="Enter Program name"
               value={groupName}
               onChange={(e) => setGroupName(e.target.value)}
               sx={{

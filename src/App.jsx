@@ -98,7 +98,7 @@ function App() {
         >
           <Route index element={<Home />} />
           <Route path='dashboard' element={<AdminDashboard/>}/>
-          <Route path="groups" element={<Group />} />
+          <Route path="programs" element={<Group />} />
           <Route path="tests" element={<Test/>} />
           <Route path="tests/:folderName" element={<TestList/>}/>
           <Route path="users" element={<Users/>}/>

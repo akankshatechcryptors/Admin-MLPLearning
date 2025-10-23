@@ -189,7 +189,7 @@ const GroupDetails = ({ onEditClick }) => {
   // If NOT viewing a specific group → show dropdown
 !groupName
   ? {
-      header: "Groups",
+      header: "Programs",
       accessorKey: "groups",
       Cell: ({ row }) => {
         const user = row.original;

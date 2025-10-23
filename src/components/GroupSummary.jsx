@@ -1,8 +1,10 @@
 import React,{useState} from "react";
-import { Grid, Paper, Typography, Button, Box, Chip } from "@mui/material";
+import { Grid, Paper, Typography, Button, Box, Chip,TextField } from "@mui/material";
 import AccessTimeIcon from '@mui/icons-material/AccessTime';
 import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, Legend, PieChart, Pie, Cell } from "recharts";
 import ExportToExcelButton from "./ExcelExport";
+import State from '../common/State';
+import District from '../common/District';
 const PASTEL_COLORS = ["#A8DADC", "#F4A261", "#E9C46A", "#F6BD60", "#84A59D", "#90BE6D"];
 import { downloadCertificate } from "../common/api";
 
@@ -64,6 +66,27 @@ function secondsToHoursMinutes(totalSeconds) {
 
 const GroupSummary = ({ group, test, onUserSelect, onBack }) => {
   const [disabling, setDisabling] = useState(false);
+  console.log(group)
+  const [state, setState] = useState('');
+    const [dist, setDist] = useState('');
+     const [searchTerm, setSearchTerm] = useState('');
+       // Process & filter users
+  const filteredUsers = group.users
+    .map((user) => ({
+      ...user,
+      passedExams: user.status === 'pass'|| [],
+    }))
+    .filter((user) => {
+      const matchName = user.name.toLowerCase().includes(searchTerm.toLowerCase());
+      const matchState = state ? user.state === state : true;
+      const matchDistrict = dist ? user.district === dist : true;
+      return matchName && matchState && matchDistrict;
+    });
+
+  const totalCertificates = filteredUsers.reduce(
+    (acc, user) => acc + user.passedExams.length,
+    0
+  );
 const handleDownloadCertificate = async (group) => {
   setDisabling(true);
   try {
@@ -102,7 +125,7 @@ const handleDownloadCertificate = async (group) => {
   return (
     <Box>
       <Typography variant="h6" mb={2}>
-        Group: {group.groupName}
+        Program: {group.groupName}
       </Typography>
       <Grid container spacing={3}>
         {/* Module-wise Average Chart */}
@@ -149,7 +172,43 @@ const handleDownloadCertificate = async (group) => {
         </Grid>
 
         <Grid item size={{ xs: 12 }} className="flex justify-end items-center">
-          <Button size="small" 
+           <Grid
+                      item
+                      size={{xs:12,sm:8,md:9}}
+                      display="flex"
+                      justifyContent="flex-end"
+                      alignItems="center"
+                      gap={1}
+                    >
+          
+                       <TextField
+                       fullWidth
+                        variant="outlined"
+                        label="Search Users"
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                          sx={{
+                          borderRadius: '50px',
+                          '& .MuiOutlinedInput-root': {
+                            padding: '0px',
+                          },
+                        }}
+                      />
+                      <State
+                        value={state}
+                        handleChange={(e) => {
+                          setState(e.target.value);
+                          setDist('');
+                        }}
+                      />
+                      <District
+                        selectedState={state}
+                        handleChange={(e) => setDist(e.target.value)}
+                        value={dist}
+                      />
+                     
+                    </Grid>
+          <Button 
           disabled={disabling}
           sx={{ mt: 1 }} onClick={()=>handleDownloadCertificate(group)} variant="outlined">
             Download Certificate
@@ -160,7 +219,7 @@ const handleDownloadCertificate = async (group) => {
         <Grid item size={{ sm: 12 }}>
 
           <Grid container spacing={2}>
-            {group.users.map((u) => {
+            {filteredUsers.map((u) => {
               const total = test.sections.maxMarks;
               const passed = u.status;
               const timeSpentbyUser = secondsToHoursMinutes(u.time_spent);

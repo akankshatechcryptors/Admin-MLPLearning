@@ -231,7 +231,7 @@ export default function AdminDashboard() {
           },
         };
 
-        //console.log('Setting new data:', newData); // Debug data before setting
+        console.log('Setting new data:', newData); // Debug data before setting
         setData(newData);
       } else {
         //console.log('Fetching dashboardApi'); // Debug default dashboard
@@ -287,7 +287,7 @@ export default function AdminDashboard() {
     },
     {
       label: selectedGroup ? 'Start Date' : 'Total Tests',
-      value: selectedGroup ? data.cards.startDate || '-' : data.cards.totalExams,
+      value: selectedGroup ? data.cards.totalExams || '-' : data.cards.totalExams,
       color: ['#10B981', '#34D399'],
       icon: selectedGroup ? (
         <CalendarMonthIcon fontSize="large" />
@@ -297,7 +297,7 @@ export default function AdminDashboard() {
     },
     {
       label: selectedGroup ? 'End Date' : 'Active Tests',
-      value: selectedGroup ? data.cards.endDate || '-' : data.cards.activeExams,
+      value: selectedGroup ? data.cards.activeExams || '-' : data.cards.activeExams,
       color: ['#F59E0B', '#FBBF24'],
       icon: selectedGroup ? (
         <EventAvailableIcon fontSize="large" />
@@ -450,12 +450,12 @@ datasets: [
     const selected = groups.find((g) => g.id === selectedId);
     setGroupName(selected ? selected.title : '');
     
-    console.log('Selected group ID:', selectedId);
-    console.log('Selected group name:', selected ? selected.title : '');
+    // console.log('Selected group ID:', selectedId);
+    // console.log('Selected group name:', selected ? selected.title : '');
   }}
-            label="Group*"
+            label="Program*"
           >
-            <MenuItem value="">All Groups</MenuItem>
+            <MenuItem value="">All Programs</MenuItem>
             {groups.map((group) => (
               <MenuItem key={group.id} value={group.id}>
                 {group.title}

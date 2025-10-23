@@ -149,7 +149,7 @@ const TestSummary = ({ test, onGroupSelect }) => {
       {/* Groups */}
       <Grid item size={{sx:12,md:12,lg:12 ,sm:12}}>
         <Typography variant="h6" gutterBottom>
-          Groups
+          CPD/CME Program
         </Typography>
         <Divider sx={{ mb: 2 }} />
         <Grid container spacing={2}>
