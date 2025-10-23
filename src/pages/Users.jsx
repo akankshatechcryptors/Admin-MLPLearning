@@ -1,141 +1,185 @@
-import React, { useState, useEffect } from 'react';
-import { Button, Box, CircularProgress } from '@mui/material';
-import AddIcon from '@mui/icons-material/Add';
-import Card from '../components/GroupCards';
-import CreateGroupModal from '../components/CreateGroupModal';
+import React, { useState } from 'react';
 import Breadcrumbs from '../components/BreadCrumb';
-import { useNavigate } from 'react-router-dom';
-import { addGroup, getGroups, editGroup } from '../common/api';
+import GroupDetails from '../components/GroupDetails';
+import { Button, Box, Typography, Dialog, DialogTitle, DialogContent, DialogActions } from '@mui/material';
+import AddIcon from '@mui/icons-material/Add';
+import { useLocation } from 'react-router-dom';
+import UploadUsersModal from '../components/UploadUser';
+import { encryptPassword } from "../common/crypt";
+import { addUser, uploadUsers, editUser } from '../common/api';
+import {toast} from  'react-toastify'
 
 const Users = () => {
-  const [openGroupModal, setOpenGroupModal] = useState(false);
-  const [groups, setGroups] = useState([]);
-  const [update, setUpdate] = useState(false);
-  const [editingGroup, setEditingGroup] = useState(null);
-  const [loading, setLoading] = useState(true); // ✅ loader state
-  const navigate = useNavigate();
+  const [openModal, setOpenModal] = useState(false);
+  const [editingUser, setEditingUser] = useState(null); // renamed to avoid conflict
+  const [uploadedUsers, setUploadedUsers] = useState([]);
+  const [confirmAction, setConfirmAction] = useState(null); // {type, user, group}
+  const[update,setUpdate]=useState(false)
 
-  const handleUpdate = () => setUpdate(!update);
+  const location = useLocation();
+  const { state } = location;
+  const groupName = state?.title || ""; // empty means "All Users"
+  const groupId = state?.id || '';
+  //console.log(state)
+ const handleUpdate=()=>{
+  setUpdate(!update)
+ }
+  const handleAddClick = () => {
+    setEditingUser(null);
+    setOpenModal(true);
+  };
 
-  // Fetch groups from API
-  const getGroupdata = async () => {
-    setLoading(true);
+  const handleEditClick = (user) => {
+    setEditingUser(user);
+    setOpenModal(true);
+  };
+
+  const handleSaveUser = async (userData) => {
+    //console.log("Saving user data: ", userData);
     try {
-      const res = await getGroups();
-      if (!res.data.error) setGroups(res.data.groups);
+      if (userData.formData.password) {
+        userData.password = encryptPassword(userData.password);
+      }
+
+      let res;
+      if (editingUser) {
+        const data={
+          id:editingUser.id,
+          fullname:userData.formData.fullname,
+          email:userData.formData.email,
+          type:userData.type,
+          password:userData.formData.password||'',
+          contact:userData.formData.contact,
+          state:userData.state,
+          district:userData.district
+        }
+        //console.log('user edited payload:  ',data)
+        // 📝 Editing existing user
+        res = await editUser(data);
+        //console.log("User edited:", res);
+        //console.log(res.data.error)
+        handleUpdate()
+        if(!res.data.error){
+          toast.success(res.data.message)
+        }
+        else{
+          toast.error(res.data.message)
+        }
+      } else {
+        // ➕ Adding new user
+        const data={
+          fullname:userData.formData.fullname,
+          email:userData.formData.email,
+          type:userData.type,
+          password:userData.formData.password||'',
+          contact:userData.formData.contact,
+          state:userData.state,
+          district:userData.district
+        }
+        //console.log('user added payload: ',data);
+        res = await addUser(data);
+        //console.log("User added:", res);
+         if(!res.data.error){
+          toast.success(res.data.message)
+          handleUpdate()
+        }
+        else{
+          toast.error(res.data.message)
+        }
+      }
+
+      setOpenModal(false);
     } catch (err) {
-      console.error("Failed to fetch groups:", err);
-    } finally {
-      setLoading(false); // ✅ hide loader after fetch
+      console.error("Error while saving user", err);
+      setOpenModal(false);
     }
   };
 
-  useEffect(() => {
-    getGroupdata();
-  }, [update]);
+  const handleUploadUsers = async (file) => {
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+      if (groupId) formData.append('group_id', groupId);
 
-  const handleCreateGroup = async (newGroup) => {
-    if (editingGroup) {
-      // Edit group: only send id and new title
-      try {
-        const data = { group_id: editingGroup.id, title: newGroup.title,registration_limit: newGroup.registration_limit,
-      start_date: newGroup.start_date,
-      end_date:newGroup.end_date };
-      //console.log('edit data: ',data);
-      
-        const res=await editGroup(data);
-        //console.log("updated group data: ",res);
-        handleUpdate();
-      } catch (err) {
-        console.error("Failed to edit group:", err);
-      }
-    } else {
-      // Create new group
-      try {
-        const data = { title: newGroup.title,registration_limit: newGroup.registration_limit,
-      start_date: newGroup.start_date,
-      end_date:newGroup.end_date };
-       const res= await addGroup(data);
-        //console.log("created group data: ",res);
-        handleUpdate();
-      } catch (err) {
-        console.error("Failed to add group:", err);
-      }
+      const res = await uploadUsers(formData);
+      toast.success("Uploaded users response");
+       handleUpdate()
+      setOpenModal(false);
+    } catch (err) {
+      console.error("Error uploading users", err);
+      setOpenModal(false);
     }
-
-    setEditingGroup(null);
-    setOpenGroupModal(false);
   };
 
-  const handleEditGroup = (group) => {
-    setEditingGroup(group);
-    setOpenGroupModal(true);
+  const handleDelete = (user, type, group = null) => {
+    setConfirmAction({ type, user, group });
   };
 
-  const handleViewGroup = (title, id) => {
-    navigate(`/users`, { state: { title, id } });
+  const confirmDelete = () => {
+    if (confirmAction?.type === "deleteUser") {
+      //console.log("Deleting user permanently:", confirmAction.user);
+    } else if (confirmAction?.type === "removeFromGroup") {
+      //console.log(`Removing ${confirmAction.user.name} from group ${confirmAction.group}`);
+    }
+    setConfirmAction(null);
   };
 
-  const handleDeleteGroup = (id) => {
-    setGroups(groups.filter((g) => g.id !== id));
-  };
-
-  
-
+  const cancelDelete = () => setConfirmAction(null);
 
   return (
     <div className="p-[2vw] bg-gray-50 min-h-screen">
       <Box className="flex justify-between items-center mb-6">
         <Breadcrumbs />
-        <Button
-          variant="outlined"
-          color="primary"
-          startIcon={<AddIcon />}
-          onClick={() => {
-            setEditingGroup(null);
-            setOpenGroupModal(true);
-          }}
-          sx={{
-            borderRadius: '50px',
-            '&:hover': { backgroundColor: '#e3f2ff' },
-          }}
-        >
-          Create Group
-        </Button>
+        <Typography variant="h6" sx={{ fontWeight: 'bold', color: 'text.primary' }}>
+          {groupName || "All Users"}
+        </Typography>
+        <Box className="flex gap-4">
+          <Button
+            variant="outlined"
+            startIcon={<AddIcon />}
+            onClick={handleAddClick}
+            sx={{ borderRadius: '50px' }}
+          >
+            Add User
+          </Button>
+        </Box>
       </Box>
 
-      {/* ✅ Loader while fetching */}
-      {loading ? (
-        <Box className="flex justify-center items-center h-64">
-          <CircularProgress />
-        </Box>
-      ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {groups.map((group) => (
-            <Card
-              key={group.id}
-              title={group.title}
-              count={group.user_count}
-              onView={() => handleViewGroup(group.title, group.id)}
-              onEdit={() => handleEditGroup(group)}
-              onDelete={() => handleDeleteGroup(group.id)}
-              start_date={group.start_date}
-              end_date={group.end_date}
-            />
-          ))}
-        </div>
-      )}
-
-      <CreateGroupModal
-        open={openGroupModal}
-        onClose={() => {
-          setEditingGroup(null);
-          setOpenGroupModal(false);
-        }}
-        onSubmit={handleCreateGroup}
-        initialData={editingGroup}
-        hideUserUpload={!!editingGroup} // hide upload users when editing
+      <GroupDetails
+        onAddClick={handleAddClick}
+        onEditClick={handleEditClick}
+        uploadedUsers={uploadedUsers}
+        groupName={groupName}
+        groupId={groupId}
+        onDelete={handleDelete}
       />
+
+      {/* Add / Upload Modal */}
+      <UploadUsersModal
+        open={openModal}
+        onClose={() => setOpenModal(false)}
+        initialData={editingUser}
+        groupId={groupId}
+        onSaveSingle={handleSaveUser}
+        onUploadBulk={handleUploadUsers}
+      />
+
+      {/* Delete Confirmation Modal */}
+      <Dialog open={!!confirmAction} onClose={cancelDelete}>
+        <DialogTitle>Confirm Action</DialogTitle>
+        <DialogContent>
+          Are you sure you want to{" "}
+          {confirmAction?.type === "deleteUser"
+            ? "delete this user permanently?"
+            : `remove ${confirmAction?.user?.name} from ${confirmAction?.group}?`}
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={cancelDelete}>Cancel</Button>
+          <Button onClick={confirmDelete} color="error" variant="contained">
+            Confirm
+          </Button>
+        </DialogActions>
+      </Dialog>
     </div>
   );
 };

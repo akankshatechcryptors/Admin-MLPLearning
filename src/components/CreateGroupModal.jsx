@@ -26,8 +26,8 @@ const CreateGroupModal = ({ open, onClose, onSubmit, initialData }) => {
     if (initialData) {
       setGroupName(initialData.title || '');
       setUserLimit(initialData.registration_limit || '');
-      setStartDate(initialData.start_date || '');
-      setEndDate(initialData.end_date || '');
+      setStartDate(initialData.start_date || ''); // Keep ISO format
+      setEndDate(initialData.end_date || ''); // Keep ISO format
     } else {
       setGroupName('');
       setUserLimit('');
@@ -36,12 +36,16 @@ const CreateGroupModal = ({ open, onClose, onSubmit, initialData }) => {
     }
   }, [initialData]);
 
-  //console.log('initial data: ',initialData)
-
   const formatDate = (dateString) => {
-  if (!dateString) return '';
-  return new Date(dateString).toISOString().split('T')[0];
-};
+    if (!dateString) return '';
+    return new Date(dateString).toISOString().split('T')[0]; // For display only
+  };
+
+  // Convert YYYY-MM-DD from TextField to ISO format
+  const toISODate = (dateString) => {
+    if (!dateString) return '';
+    return new Date(dateString).toISOString(); // Converts to 2025-10-10T00:00:00.000Z
+  };
 
   const handleSubmit = () => {
     if (!groupName) {
@@ -56,26 +60,30 @@ const CreateGroupModal = ({ open, onClose, onSubmit, initialData }) => {
       toast.error("End date cannot be earlier than start date");
       return;
     }
-    const today = new Date();
-today.setHours(0, 0, 0, 0);
 
-const selected = new Date(startDate);
-selected.setHours(0, 0, 0, 0);
+    // Normalize dates to YYYY-MM-DD for comparison
+    const isEditing = !!initialData;
+    const isStartDateUnchanged = isEditing && formatDate(startDate) === formatDate(initialData.start_date);
 
-if (selected < today) {
-  toast.error("Start date cannot be in the past");
-  return;
-}
+    if (!isStartDateUnchanged) {
+      // Only validate startDate if it's a new group or the startDate has changed
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
 
+      const selected = new Date(startDate);
+      selected.setHours(0, 0, 0, 0);
 
-   // console.log('start date: ',new Date(startDate));
-    //console.log('current date: ', Date.now());
+      if (selected < today) {
+        toast.error("Start date cannot be in the past");
+        return;
+      }
+    }
 
     onSubmit({
       title: groupName,
       registration_limit: userLimit,
-      start_date:startDate,
-      end_date:endDate,
+      start_date: startDate, // Already in ISO format
+      end_date: endDate, // Already in ISO format
       count: initialData?.count || 0,
       id: initialData?.id,
     });
@@ -95,8 +103,6 @@ if (selected < today) {
       }
     );
   };
-
-
 
   return (
     <Modal
@@ -144,7 +150,7 @@ if (selected < today) {
 
           <div>
             <InputLabel className="text-sm font-medium text-gray-700 mb-2">
-              User Registeration Limit
+              User Registration Limit
             </InputLabel>
             <TextField
               fullWidth
@@ -159,43 +165,29 @@ if (selected < today) {
                 },
               }}
             />
-          <div className='pt-4'>
-            
-            <TextField
-              label="Start date of the test*"
-              type="date"
-              fullWidth
-              margin="dense"
-              InputLabelProps={{ shrink: true }}
-              value={formatDate(startDate)}
-              onChange={(e) => setStartDate(e.target.value)}
-            />
+            <div className="pt-4">
+              <TextField
+                label="Start date of the test*"
+                type="date"
+                fullWidth
+                margin="dense"
+                InputLabelProps={{ shrink: true }}
+                value={formatDate(startDate)}
+                onChange={(e) => setStartDate(toISODate(e.target.value))}
+              />
             </div>
-            <div className='pt-4'>
-
-            <TextField
-              label="End date of the test*"
-              type="date"
-              fullWidth
-              margin="dense"
-              InputLabelProps={{ shrink: true }}
-              value={formatDate(endDate)}
-              onChange={(e) => setEndDate(e.target.value)}
-            />
-
-
+            <div className="pt-4">
+              <TextField
+                label="End date of the test*"
+                type="date"
+                fullWidth
+                margin="dense"
+                InputLabelProps={{ shrink: true }}
+                value={formatDate(endDate)}
+                onChange={(e) => setEndDate(toISODate(e.target.value))}
+              />
+            </div>
           </div>
-          </div>
-
-          {/*   {!initialData && (
-            <a
-              href="/userlist_format.xlsx"
-              download="sample_users.xlsx"
-              className="inline-block text-sm text-green-600 hover:text-green-800 underline transition-colors duration-200"
-            >
-              Download Sample
-            </a>
-          )} */}
         </div>
 
         <div className="flex justify-end gap-3 pt-4">

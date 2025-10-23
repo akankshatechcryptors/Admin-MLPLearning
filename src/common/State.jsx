@@ -2,7 +2,7 @@ import React from "react";
 import { TextField, MenuItem,Box } from "@mui/material";
 
 import { styled } from "@mui/material/styles";
-const statesInIndia = [
+const statesInIndia = ["Other",
   "Andhra Pradesh", "Arunachal Pradesh", "Assam", "Bihar", "Chhattisgarh",
   "Goa", "Gujarat", "Haryana", "Himachal Pradesh", "Jharkhand",
   "Karnataka", "Kerala", "Madhya Pradesh", "Maharashtra", "Manipur",

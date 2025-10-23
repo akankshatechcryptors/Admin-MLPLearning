@@ -32,7 +32,7 @@ const Card = ({ title, count, onEdit, onDelete, onView,start_date,end_date }) =>
   return (
     <motion.div
       whileHover={{ scale: 1.02 }}
-      className="rounded-lg p-[1.5vw] m-2 shadow-md bg-blue-200 flex justify-between items-center"
+      className="rounded-lg p-[2.5vw] sm:p-[1.5vw] m-2 shadow-md bg-blue-200 flex justify-between items-center"
     >
       <div>
         <h3 className="font-semibold text-lg">{title}</h3>

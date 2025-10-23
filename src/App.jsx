@@ -12,7 +12,7 @@ import Layout from './components/Layout';
 import Home from './pages/Home';
 import Users from './pages/Users'
 import Test from './pages/Test'
-import Group from './pages/Group'
+import Group from './pages/Groups'
 import TestSummary from './pages/TestSummary'
 import Admin from './pages/Admins'
 import TestList  from './components/TestCards'
@@ -98,10 +98,10 @@ function App() {
         >
           <Route index element={<Home />} />
           <Route path='dashboard' element={<AdminDashboard/>}/>
-          <Route path="groups" element={<Users />} />
+          <Route path="groups" element={<Group />} />
           <Route path="tests" element={<Test/>} />
           <Route path="tests/:folderName" element={<TestList/>}/>
-          <Route path="users" element={<Group/>}/>
+          <Route path="users" element={<Users/>}/>
           <Route path="summary" element={<TestSummary/>}/>
           <Route path="admins" element={<Admin/>}/>
           <Route path="add-questions" element={<TestQuestions/>}/>

@@ -2,6 +2,7 @@ import React,{useState,useEffect} from 'react';
 import { Autocomplete, TextField, Box } from "@mui/material";
 import { styled } from "@mui/material/styles";
 const stateDistricts = {
+  "Other":["Other"],
     "Andhra Pradesh": [
       "Chittoor", "East Godavari", "Guntur", "Krishna", "Kurnool",
       "Nellore", "Prakasam", "Srikakulam", "Visakhapatnam", "West Godavari",
@@ -204,6 +205,9 @@ const DistrictDropdown = ({ selectedState, value, handleChange, imp }) => {
     } else {
       setOptions([]);
     }
+     if (selectedState === "Other") {
+      handleChange({ target: { name: "district", value: "Other" } });
+    }
   }, [selectedState]);
 
   // Handle changes (and add new district if typed manually)
@@ -219,7 +223,7 @@ const DistrictDropdown = ({ selectedState, value, handleChange, imp }) => {
       <Autocomplete
         key={selectedState} // re-render when state changes
         freeSolo
-        disabled={!selectedState} // disable if no state selected
+       disabled={!selectedState || selectedState === "Other"} // disable if "Other"
         options={options}
         value={value || ""}
         onChange={(event, newValue) => handleDistrictChange(event, newValue)}

@@ -67,7 +67,7 @@ const GroupDetails = ({ onEditClick }) => {
     setLoading(true);
     try {
       const res = await getUsers({ group_id: groupId });
-     // console.log("getUsers API Called: ",res);
+      //console.log("getUsers API Called: ",res);
       if (!res.data.error) {
         const mappedUsers = res.data.users.map((u) => ({
           ...u,

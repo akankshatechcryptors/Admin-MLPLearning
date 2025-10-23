@@ -147,7 +147,7 @@ const TestResultsDashboard = () => {
           <Grid item size={{ xs: 12, sm: 3, md: 4, lg: 4 }} key={test.id}>
             <Card
               sx={{
-                p: 2,
+                  p: { xs: 3, sm: 2.5, md: 2, lg: 2, xl: 1.5 }, // ✅ Fixed: Responsive spacing units
                 borderRadius: 2,
                 boxShadow: 3,
                 bgcolor: getCardColor(test.status),
